@@ -1,8 +1,3 @@
-/*
-负责人员：张金龙
-创建时间：2021/10/18
-程序用途：
-*/
 package task_scan_site
 
 import (
