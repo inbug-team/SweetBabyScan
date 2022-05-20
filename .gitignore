@@ -1,0 +1,11 @@
+# dependencies
+/vendor
+/.idea
+/static
+/local.db
+/local.db-shm
+/local.db-wal
+/ip.txt
+/port.txt
+/site.txt
+/readme.md
