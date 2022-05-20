@@ -35,6 +35,7 @@ GOOS=linux GOARCH=386 go build -ldflags="-s -w" -trimpath -o SbScan
 - 根据指定IP+端口扫描
 
 > ./SbScan -h=192.168.188.1/24 -p=tiny
+
 > ./SbScan -h=192.168.188.1/24,10.0.0.1/16 -p=22,80,443
 
 ### 三、参数？
