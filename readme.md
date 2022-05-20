@@ -5,11 +5,11 @@
 ```shell
 set GOOS=windows
 set GOARCH=amd64
-go build -ldflags="-s -w -H windowsgui" -trimpath -o SbScan.exe
+go build -ldflags="-s -w" -trimpath -o SbScan.exe
 
 set GOOS=windows
 set GOARCH=386
-go build -ldflags="-s -w -H windowsgui" -trimpath -o SbScan.exe
+go build -ldflags="-s -w" -trimpath -o SbScan.exe
 ```
 
 - Mac or Linux
