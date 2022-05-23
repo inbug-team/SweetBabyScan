@@ -9,7 +9,10 @@
 ### 工具截图
 工具工具系统自动下载对应版本的Chromium
 ![1](img/1.png)
-![1](img/2.png)
+![2](img/2.png)
+![3](img/3.png)
+![4](img/4.png)
+![5](img/5.png)
 
 
 
