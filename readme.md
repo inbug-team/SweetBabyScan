@@ -1,4 +1,15 @@
-### 一、编译？
+# SweetBabyScan
+轻量级内网资产探测漏洞扫描工具
+
+## 简介
+甜心宝贝是一款支持弱口令爆破的内网资产探测漏洞扫描工具，集成了Xray与Nuclei的Poc。
+### 工具定位
+内网资产探测、通用漏洞扫描、弱口令爆破。
+
+### 工具截图
+![1](./img/2.png)
+
+### 一、编译
 
 - Windows
 
@@ -21,7 +32,7 @@ GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -trimpath -o SbScan
 GOOS=linux GOARCH=386 go build -ldflags="-s -w" -trimpath -o SbScan
 ```
 
-### 二、运行？
+### 二、运行
 
 - 自动扫描
 
@@ -42,7 +53,7 @@ GOOS=linux GOARCH=386 go build -ldflags="-s -w" -trimpath -o SbScan
 
 > ulimit -n 65535 && ./SbScan -wsh=2048 -wsp=1024 -h=192.168.188.1/24,10.0.0.1/16 -p=22,80,443
 
-### 三、参数？
+### 三、参数
 
 - 查看参数帮助命令
 
