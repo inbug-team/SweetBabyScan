@@ -120,3 +120,9 @@ Flags:
 1.nuclei：https://github.com/projectdiscovery/nuclei
 2.xray：https://github.com/chaitin/xray
 ```
+
+**官网**
+https://www.inbug.org
+
+同时也可通过公众号联系：
+![-w784](InBug.bmp)
