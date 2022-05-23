@@ -38,6 +38,10 @@ GOOS=linux GOARCH=386 go build -ldflags="-s -w" -trimpath -o SbScan
 
 > ./SbScan -h=192.168.188.1/24,10.0.0.1/16 -p=22,80,443
 
+- Linux & Mac临时修改最大打开文件限制，提升并发性能
+
+> ulimit -n 65535 && ./SbScan -wsh=2048 -wsp=1024 -h=192.168.188.1/24,10.0.0.1/16 -p=22,80,443
+
 ### 三、参数？
 
 - 查看参数帮助命令
