@@ -7,7 +7,7 @@
 内网资产探测、通用漏洞扫描、弱口令爆破
 
 ### 工具截图
-工具工具系统自动下载对应版本的Chromium
+工具根据系统自动下载对应版本的Chromium
 ![1](img/1.png)
 ![2](img/2.png)
 ![3](img/3.png)
@@ -15,11 +15,17 @@
 ![5](img/5.png)
 
 调高探测与扫描并发
+```
+./SbScan -h 192.168.0.0/16 -wsh 500 --wsp 500
+```
 ![6](img/6.png)
 ![7](img/7.png)
 ![8](img/8.png)
 
 端口扫描可以写端口号、端口范围或者常用端口类型
+```
+./SbScan -h 192.168.188.0/24 -p 80,22,81-89
+```
 ![9](img/9.png)
 ![10](img/10.png)
 
@@ -112,6 +118,7 @@ Flags:
     [+]3.网站指纹爬虫
 ```
 
+
 ### 五、参考项目
 
 - 致谢🙏🙏🙏
@@ -120,6 +127,10 @@ Flags:
 1.nuclei：https://github.com/projectdiscovery/nuclei
 2.xray：https://github.com/chaitin/xray
 ```
+
+### Star Chart
+
+[![Stargazers over time](https://starchart.cc/inbug-team/SweetBabyScan.svg)](https://starchart.cc/inbug-team/SweetBabyScan)
 
 **官网**
 https://www.inbug.org
