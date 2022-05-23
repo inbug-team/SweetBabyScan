@@ -118,10 +118,6 @@ Flags:
     [+]3.网站指纹爬虫
 ```
 
-### Star time
-
-[![Stargazers over time](https://starchart.cc/inbug-team/SweetBabyScan.svg)](https://starchart.cc/inbug-team/SweetBabyScan)
-
 
 ### 五、参考项目
 
