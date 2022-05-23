@@ -128,7 +128,7 @@ Flags:
 2.xray：https://github.com/chaitin/xray
 ```
 
-### Star time
+### Star Chart
 
 [![Stargazers over time](https://starchart.cc/inbug-team/SweetBabyScan.svg)](https://starchart.cc/inbug-team/SweetBabyScan)
 
