@@ -33,6 +33,12 @@
 
 ### 一、编译
 
+- 递归克隆项目，获取最新poc
+
+```shell
+git clone https://github.com/inbug-team/SweetBabyScan.git --recursive
+```
+
 - Windows
 
 ```shell
