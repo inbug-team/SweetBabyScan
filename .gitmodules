@@ -1,0 +1,6 @@
+[submodule "config/probe/pocs/nuclei"]
+	path = config/probe/pocs/nuclei
+	url = https://github.com/projectdiscovery/nuclei-templates
+[submodule "config/probe/pocs/xray"]
+	path = config/probe/pocs/xray
+	url = https://github.com/chaitin/xray
