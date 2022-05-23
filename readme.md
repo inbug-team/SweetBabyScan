@@ -125,4 +125,4 @@ Flags:
 https://www.inbug.org
 
 同时也可通过公众号联系：
-![-w784](InBug.bmp)
+![-w784](img/InBug.bmp)
