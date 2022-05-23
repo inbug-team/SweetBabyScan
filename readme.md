@@ -118,6 +118,11 @@ Flags:
     [+]3.网站指纹爬虫
 ```
 
+### Star time
+
+[![Stargazers over time](https://starchart.cc/inbug-team/SweetBabyScan.svg)](https://starchart.cc/inbug-team/SweetBabyScan)
+
+
 ### 五、参考项目
 
 - 致谢🙏🙏🙏
@@ -126,6 +131,10 @@ Flags:
 1.nuclei：https://github.com/projectdiscovery/nuclei
 2.xray：https://github.com/chaitin/xray
 ```
+
+### Star time
+
+[![Stargazers over time](https://starchart.cc/inbug-team/SweetBabyScan.svg)](https://starchart.cc/inbug-team/SweetBabyScan)
 
 **官网**
 https://www.inbug.org
