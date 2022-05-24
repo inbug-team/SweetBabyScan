@@ -93,11 +93,11 @@ func MultiTask(
 			if newItem != nil {
 				if err := done(newItem, buf); err == nil {
 					doneTask++
-					leftTime := (1 - float32(ingTask)/float32(totalTask)) * float32(totalTime)
 					bar.Set("alive", fmt.Sprintf("[+](%d)", doneTask))
-					bar.Set("leftTime", fmt.Sprintf("LeftTime: %s", StaticLeftTime(leftTime)))
 				}
 			}
+			leftTime := (1 - float32(ingTask)/float32(totalTask)) * float32(totalTime)
+			bar.Set("leftTime", fmt.Sprintf("LeftTime: %s", StaticLeftTime(leftTime)))
 			// 完成计数
 			if ingTask == totalTask {
 				after(doneTask)
