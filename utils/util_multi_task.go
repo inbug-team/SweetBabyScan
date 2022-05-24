@@ -1,10 +1,10 @@
 package utils
 
 import (
-	"SweetBabyScan/models"
 	"bufio"
 	"fmt"
 	"github.com/cheggaaa/pb/v3"
+	"github.com/inbug-team/SweetBabyScan/models"
 	"os"
 	"sync"
 	"time"

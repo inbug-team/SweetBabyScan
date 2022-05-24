@@ -1,8 +1,8 @@
 package main
 
 import (
-	"SweetBabyScan/initializes/initialize_http_client"
 	"fmt"
+	"github.com/inbug-team/SweetBabyScan/initializes/initialize_http_client"
 )
 
 func init() {

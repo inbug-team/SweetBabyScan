@@ -1,8 +1,8 @@
 package plugin_scan_weak
 
 import (
-	"SweetBabyScan/utils"
 	"fmt"
+	"github.com/inbug-team/SweetBabyScan/utils"
 	"github.com/jlaffaye/ftp"
 	"time"
 )

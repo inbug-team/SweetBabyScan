@@ -1,9 +1,9 @@
 package plugin_scan_cms2
 
 import (
-	"SweetBabyScan/core/plugins/plugin_scan_cms2/info"
 	"crypto/md5"
 	"fmt"
+	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_cms2/info"
 	"regexp"
 )
 

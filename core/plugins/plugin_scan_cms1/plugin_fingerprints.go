@@ -1,7 +1,7 @@
 package plugin_scan_cms1
 
 import (
-	"SweetBabyScan/models"
+	"github.com/inbug-team/SweetBabyScan/models"
 	"regexp"
 )
 

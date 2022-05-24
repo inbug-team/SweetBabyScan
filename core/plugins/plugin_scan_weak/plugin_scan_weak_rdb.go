@@ -1,13 +1,13 @@
 package plugin_scan_weak
 
 import (
-	"SweetBabyScan/utils"
 	"database/sql"
 	"fmt"
 	_ "github.com/ClickHouse/clickhouse-go"
 	_ "github.com/denisenkom/go-mssqldb"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/godror/godror"
+	"github.com/inbug-team/SweetBabyScan/utils"
 	_ "github.com/lib/pq"
 	"os"
 	"time"

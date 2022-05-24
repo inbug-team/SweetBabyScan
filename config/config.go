@@ -1,9 +1,9 @@
 package config
 
 import (
-	"SweetBabyScan/models"
 	"embed"
 	"encoding/json"
+	"github.com/inbug-team/SweetBabyScan/models"
 	"math/rand"
 	"time"
 )

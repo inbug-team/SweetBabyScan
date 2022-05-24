@@ -1,9 +1,9 @@
 package plugin_scan_port
 
 import (
-	"SweetBabyScan/utils"
 	"errors"
 	"fmt"
+	"github.com/inbug-team/SweetBabyScan/utils"
 	"io/ioutil"
 	"log"
 	"net"

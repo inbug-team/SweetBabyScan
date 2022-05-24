@@ -1,12 +1,12 @@
 package task_scan_port
 
 import (
-	"SweetBabyScan/core/plugins/plugin_scan_port"
-	"SweetBabyScan/models"
-	"SweetBabyScan/utils"
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_port"
+	"github.com/inbug-team/SweetBabyScan/models"
+	"github.com/inbug-team/SweetBabyScan/utils"
 	"math"
 	"strings"
 	"sync"

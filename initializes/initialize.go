@@ -1,8 +1,8 @@
 package initializes
 
 import (
-	"SweetBabyScan/initializes/initialize_http_client"
-	"SweetBabyScan/initializes/initialize_screenshot"
+	"github.com/inbug-team/SweetBabyScan/initializes/initialize_http_client"
+	"github.com/inbug-team/SweetBabyScan/initializes/initialize_screenshot"
 )
 
 func InitAll() {

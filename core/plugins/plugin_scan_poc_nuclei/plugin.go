@@ -1,9 +1,9 @@
 package plugin_scan_poc_nuclei
 
 import (
-	"SweetBabyScan/models"
 	"embed"
 	"fmt"
+	"github.com/inbug-team/SweetBabyScan/models"
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/projectdiscovery/nuclei/v2/pkg/catalog"
 	"github.com/projectdiscovery/nuclei/v2/pkg/output"

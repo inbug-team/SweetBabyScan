@@ -1,10 +1,10 @@
 package plugin_scan_weak
 
 import (
-	"SweetBabyScan/utils"
 	"context"
 	"fmt"
 	"github.com/go-redis/redis/v8"
+	"github.com/inbug-team/SweetBabyScan/utils"
 	"time"
 )
 

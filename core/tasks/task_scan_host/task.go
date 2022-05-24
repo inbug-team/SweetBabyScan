@@ -1,11 +1,11 @@
 package task_scan_host
 
 import (
-	"SweetBabyScan/core/plugins/plugin_scan_host"
-	"SweetBabyScan/models"
-	"SweetBabyScan/utils"
 	"bufio"
 	"fmt"
+	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_host"
+	"github.com/inbug-team/SweetBabyScan/models"
+	"github.com/inbug-team/SweetBabyScan/utils"
 	"math"
 	"sort"
 	"strings"

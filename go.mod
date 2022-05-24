@@ -1,4 +1,4 @@
-module SweetBabyScan
+module github.com/inbug-team/SweetBabyScan
 
 go 1.17
 
@@ -12,9 +12,9 @@ require (
 	github.com/go-rod/rod v0.106.8
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/godror/godror v0.33.2
-	github.com/gosnmp/gosnmp v1.34.0
+	github.com/gosnmp/gosnmp v1.35.0
 	github.com/jedib0t/go-pretty/v6 v6.3.1
-	github.com/jlaffaye/ftp v0.0.0-20220310202011-d2c44e311e78
+	github.com/jlaffaye/ftp v0.0.0-20220524001917-dfa1e758f3af
 	github.com/lib/pq v1.10.6
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/olivere/elastic/v7 v7.0.32
@@ -25,7 +25,7 @@ require (
 	go.mongodb.org/mongo-driver v1.9.1
 	go.uber.org/ratelimit v0.2.0
 	golang.org/x/crypto v0.0.0-20220518034528-6f7dac969898
-	golang.org/x/net v0.0.0-20220225172249-27dd8689420f
+	golang.org/x/net v0.0.0-20220520000938-2e3eb7b945c2
 	golang.org/x/text v0.3.7
 	gorm.io/driver/mysql v1.3.3
 	gorm.io/driver/postgres v1.3.6

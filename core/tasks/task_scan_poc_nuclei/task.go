@@ -1,12 +1,12 @@
 package task_scan_poc_nuclei
 
 import (
-	"SweetBabyScan/core/plugins/plugin_scan_poc_nuclei"
-	"SweetBabyScan/models"
-	"SweetBabyScan/utils"
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_poc_nuclei"
+	"github.com/inbug-team/SweetBabyScan/models"
+	"github.com/inbug-team/SweetBabyScan/utils"
 	"math"
 	"sync"
 )

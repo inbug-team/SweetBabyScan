@@ -1,9 +1,9 @@
 package initialize_screenshot
 
 import (
-	"SweetBabyScan/core/plugins/plugin_scan_site"
-	"SweetBabyScan/utils"
 	"fmt"
+	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_site"
+	"github.com/inbug-team/SweetBabyScan/utils"
 	"time"
 )
 

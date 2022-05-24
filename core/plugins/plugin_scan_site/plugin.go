@@ -1,16 +1,16 @@
 package plugin_scan_site
 
 import (
-	"SweetBabyScan/config"
-	"SweetBabyScan/core/plugins/plugin_scan_cms1"
-	"SweetBabyScan/core/plugins/plugin_scan_cms2"
-	"SweetBabyScan/initializes/initialize_http_client"
-	"SweetBabyScan/models"
-	"SweetBabyScan/utils"
 	"encoding/json"
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/go-rod/rod"
+	"github.com/inbug-team/SweetBabyScan/config"
+	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_cms1"
+	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_cms2"
+	"github.com/inbug-team/SweetBabyScan/initializes/initialize_http_client"
+	"github.com/inbug-team/SweetBabyScan/models"
+	"github.com/inbug-team/SweetBabyScan/utils"
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"io/ioutil"

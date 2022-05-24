@@ -1,10 +1,10 @@
 package plugin_scan_cms1
 
 import (
-	"SweetBabyScan/config"
-	"SweetBabyScan/models"
 	"bytes"
 	"encoding/json"
+	"github.com/inbug-team/SweetBabyScan/config"
+	"github.com/inbug-team/SweetBabyScan/models"
 	"strings"
 )
 
