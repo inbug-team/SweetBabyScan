@@ -2,7 +2,9 @@ package main
 
 import (
 	"SweetBabyScan/config"
+	"SweetBabyScan/core/plugins/plugin_scan_poc_nuclei"
 	"SweetBabyScan/core/tasks/task_scan_host"
+	"SweetBabyScan/core/tasks/task_scan_poc_nuclei"
 	"SweetBabyScan/core/tasks/task_scan_port"
 	"SweetBabyScan/core/tasks/task_scan_site"
 	"SweetBabyScan/initializes"
@@ -11,9 +13,11 @@ import (
 	_ "embed"
 	"fmt"
 	"github.com/common-nighthawk/go-figure"
+	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/projectdiscovery/goflags"
 	"os"
 	"runtime"
+	"strings"
 )
 
 func init() {
@@ -21,44 +25,40 @@ func init() {
 	initializes.InitAll()
 }
 
-func main() {
-	myFigure := figure.NewColorFigure("SBScan", "doom", "red", true)
-	myFigure.Print()
-	fmt.Println("全称：SweetBaby，甜心宝贝扫描器")
-	fmt.Println("Version <0.0.1> Made By InBug")
+// 过滤函数
+func fnFilter(pocName, vulLevel string, params models.Params) bool {
+	statusFPN, statusFVL := false, false
+	// 筛选漏洞名
+	for _, s1 := range strings.Split(strings.ToLower(params.FilterPocName), ",") {
+		statusFPN = statusFPN || strings.Contains(pocName, s1)
+	}
+	// 筛选漏洞等级
+	if params.FilterVulLevel != "" {
+		for _, s4 := range strings.Split(strings.ToLower(params.FilterVulLevel), ",") {
+			statusFVL = statusFVL || (s4 == vulLevel)
+		}
+	} else {
+		statusFVL = true
+	}
+	return statusFPN && statusFVL
+}
 
-	path := "./static/ip.png"
-	isScreen, _ := utils.PathExists(path)
+// 查询 poc nuclei
+func findPocs(p models.Params) {
+	fmt.Println("Finding......，Please be patient !")
+	pocNuclei := plugin_scan_poc_nuclei.ParsePocNucleiFiles(config.DirPocNuclei)
+	rows := plugin_scan_poc_nuclei.ParsePocNucleiToTable(pocNuclei)
+	rows, total := plugin_scan_poc_nuclei.FilterPocNucleiTable(rows, fnFilter, p)
+	utils.ShowTable(
+		fmt.Sprintf("Collection Of Poc Nuclei <%d rows>", total),
+		table.Row{"ID", "Poc", "Catalog", "Protocol", "Level"},
+		rows,
+	)
+}
 
-	p := models.Params{}
-
-	flagSet := goflags.NewFlagSet()
-
-	flagSet.StringVarP(&p.Lang, "lang", "l", "zh-cn", "语言")
-	flagSet.BoolVarP(&p.IsLog, "isLog", "il", true, "是否显示日志")
-	flagSet.BoolVarP(&p.IsScreen, "isScreen", "is", isScreen, "是否启用截图")
-	flagSet.StringVarP(&p.Host, "host", "h", "192.168.0.0/16,172.16.0.0/12,10.0.0.0/8", "检测网段")
-	flagSet.StringVarP(&p.Port, "port", "p", "tiny", "端口范围：tiny[精简]、normal[常用]、database[数据库]、caffe[咖啡厅/酒店/机场]、iot[物联网]、all[全部]、自定义")
-	flagSet.StringVarP(&p.Protocol, "protocol", "pt", "tcp+udp", "端口范围：tcp、udp、tcp+udp")
-	flagSet.StringVarP(&p.HostBlack, "hostBlack", "hb", "", "排除网段")
-	flagSet.StringVarP(&p.MethodScanHost, "methodScanHost", "msh", "PING", "验存方式：PING、ICMP、ARP")
-	flagSet.StringVarP(&p.IFace, "iFace", "if", "", "出口网卡")
-	flagSet.IntVarP(&p.WorkerScanHost, "workerScanHost", "wsh", 250, "存活并发")
-	flagSet.IntVarP(&p.TimeOutScanHost, "timeOutScanHost", "tsh", 3, "存活超时")
-	flagSet.IntVarP(&p.Rarity, "rarity", "r", 10, "优先级")
-	flagSet.IntVarP(&p.WorkerScanPort, "workerScanPort", "wsp", 250, "扫描并发")
-	flagSet.IntVarP(&p.TimeOutScanPortConnect, "timeOutScanPortConnect", "tspc", 3, "端口扫描连接超时")
-	flagSet.IntVarP(&p.TimeOutScanPortSend, "timeOutScanPortSend", "tsps", 3, "端口扫描发包超时")
-	flagSet.IntVarP(&p.TimeOutScanPortRead, "timeOutScanPortRead", "tspr", 3, "端口扫描读取超时")
-	flagSet.BoolVarP(&p.IsNULLProbeOnly, "isNULLProbeOnly", "inpo", false, "使用空探针")
-	flagSet.BoolVarP(&p.IsUseAllProbes, "isUseAllProbes", "iuap", false, "使用全量探针")
-	flagSet.IntVarP(&p.WorkerScanSite, "workerScanSite", "wss", runtime.NumCPU()*2, "爬虫并发")
-	flagSet.IntVarP(&p.TimeOutScanSite, "timeOutScanSite", "tss", 3, "爬虫超时")
-	flagSet.IntVarP(&p.TimeOutScreen, "timeOutScreen", "ts", 60, "截图超时")
-
-	flagSet.Parse()
-
-	fmt.Println("loading......，Please be patient !")
+// 执行任务
+func doTask(p models.Params) {
+	fmt.Println("Loading......，Please be patient !")
 	p.RuleProbe = config.RuleProbe
 	p.IPs = utils.GetIps(p.Host, p.HostBlack)
 	portsMap := map[string]string{
@@ -85,7 +85,63 @@ func main() {
 		p.Protocols = []string{"tcp", "udp"}
 	}
 
+	pocNuclei := plugin_scan_poc_nuclei.ParsePocNucleiFiles(config.DirPocNuclei)
+	p.Pocs, _ = plugin_scan_poc_nuclei.FilterPocNucleiData(pocNuclei, fnFilter, p)
+
 	p.IPs = task_scan_host.DoTaskScanHost(p)
 	p.Urls = task_scan_port.DoTaskScanPort(p)
-	task_scan_site.DoTaskScanSite(p)
+	p.Sites = task_scan_site.DoTaskScanSite(p)
+	task_scan_poc_nuclei.DoTaskScanPocNuclei(p)
+}
+
+func main() {
+	myFigure := figure.NewColorFigure("SBScan", "doom", "red", true)
+	myFigure.Print()
+	fmt.Println("全称：SweetBaby，甜心宝贝扫描器")
+	fmt.Println("Version <0.0.1> Made By InBug")
+
+	path := "./static/ip.png"
+	isScreen, _ := utils.PathExists(path)
+
+	p := models.Params{}
+
+	flagSet := goflags.NewFlagSet()
+
+	flagSet.StringVarP(&p.Lang, "lang", "l", "zh-cn", "语言")
+	flagSet.BoolVarP(&p.IsLog, "isLog", "il", true, "是否显示日志")
+	flagSet.BoolVarP(&p.IsScreen, "isScreen", "is", isScreen, "是否启用截图")
+	flagSet.StringVarP(&p.Host, "host", "h", "192.168.0.0/16,172.16.0.0/12,10.0.0.0/8", "检测网段")
+	flagSet.StringVarP(&p.Port, "port", "p", "tiny", "端口范围：tiny[精简]、normal[常用]、database[数据库]、caffe[咖啡厅/酒店/机场]、iot[物联网]、all[全部]、自定义")
+	flagSet.StringVarP(&p.Protocol, "protocol", "pt", "tcp+udp", "端口范围：tcp、udp、tcp+udp")
+	flagSet.StringVarP(&p.HostBlack, "hostBlack", "hb", "", "排除网段")
+	flagSet.StringVarP(&p.MethodScanHost, "methodScanHost", "msh", "PING", "验存方式：PING、ICMP")
+	flagSet.StringVarP(&p.IFace, "iFace", "if", "", "出口网卡")
+	flagSet.IntVarP(&p.WorkerScanHost, "workerScanHost", "wsh", 250, "存活并发")
+	flagSet.IntVarP(&p.TimeOutScanHost, "timeOutScanHost", "tsh", 3, "存活超时")
+	flagSet.IntVarP(&p.Rarity, "rarity", "r", 10, "优先级")
+	flagSet.IntVarP(&p.WorkerScanPort, "workerScanPort", "wsp", 250, "扫描并发")
+	flagSet.IntVarP(&p.TimeOutScanPortConnect, "timeOutScanPortConnect", "tspc", 3, "端口扫描连接超时")
+	flagSet.IntVarP(&p.TimeOutScanPortSend, "timeOutScanPortSend", "tsps", 3, "端口扫描发包超时")
+	flagSet.IntVarP(&p.TimeOutScanPortRead, "timeOutScanPortRead", "tspr", 3, "端口扫描读取超时")
+	flagSet.BoolVarP(&p.IsNULLProbeOnly, "isNULLProbeOnly", "inpo", false, "使用空探针")
+	flagSet.BoolVarP(&p.IsUseAllProbes, "isUseAllProbes", "iuap", false, "使用全量探针")
+	flagSet.IntVarP(&p.WorkerScanSite, "workerScanSite", "wss", runtime.NumCPU()*2, "爬虫并发")
+	flagSet.IntVarP(&p.TimeOutScanSite, "timeOutScanSite", "tss", 3, "爬虫超时")
+	flagSet.IntVarP(&p.TimeOutScreen, "timeOutScreen", "ts", 60, "截图超时")
+	flagSet.BoolVarP(&p.ListPocNuclei, "listPocNuclei", "lpn", false, "是否列举Nuclei Poc")
+	flagSet.StringVarP(&p.FilterPocName, "filterPocName", "fpn", "", "筛选POC名称，多个关键字英文逗号隔开")
+	flagSet.StringVarP(&p.FilterVulLevel, "filterVulLevel", "fvl", "", "筛选POC严重等级：critical[严重] > high[高危] > medium[中危] > low[低危] > info[信息]、unknown[未知]，多个关键字英文逗号隔开")
+	flagSet.IntVarP(&p.TimeOutScanPocNuclei, "timeOutScanPocNuclei", "tspn", 6, "PocNuclei扫描超时")
+	flagSet.IntVarP(&p.WorkerScanPoc, "workerScanPoc", "wsPoc", 100, "Poc并发")
+
+	flagSet.Parse()
+
+	plugin_scan_poc_nuclei.InitPocNucleiExecOpts(p.TimeOutScanPocNuclei)
+
+	if p.ListPocNuclei {
+		findPocs(p)
+	} else {
+		doTask(p)
+	}
+
 }

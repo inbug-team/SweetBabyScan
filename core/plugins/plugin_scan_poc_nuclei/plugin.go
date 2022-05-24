@@ -1,7 +1,10 @@
 package plugin_scan_poc_nuclei
 
 import (
+	"SweetBabyScan/models"
+	"embed"
 	"fmt"
+	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/projectdiscovery/nuclei/v2/pkg/catalog"
 	"github.com/projectdiscovery/nuclei/v2/pkg/output"
 	"github.com/projectdiscovery/nuclei/v2/pkg/protocols"
@@ -9,6 +12,11 @@ import (
 	"github.com/projectdiscovery/nuclei/v2/pkg/templates"
 	"github.com/projectdiscovery/nuclei/v2/pkg/types"
 	"go.uber.org/ratelimit"
+	"io/fs"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"strings"
 )
 
 var (
@@ -28,11 +36,10 @@ type Poc struct {
 }
 
 // 初始化nuclei选项
-func InitPocNucleiExecOpts(rate int, timeout int) {
+func InitPocNucleiExecOpts(timeout int) {
 	fakeWriter := &FakeWrite{}
 	progress := &FakeProgress{}
 	o := types.Options{
-		RateLimit:               rate,
 		BulkSize:                25,
 		TemplateThreads:         25,
 		HeadlessBulkSize:        10,
@@ -53,13 +60,105 @@ func InitPocNucleiExecOpts(rate int, timeout int) {
 		Options:     &o,
 		Progress:    progress,
 		Catalog:     catalog2,
-		RateLimiter: ratelimit.New(rate),
+		RateLimiter: ratelimit.NewUnlimited(),
 	}
 }
 
+// 解析所有Poc Nuclei文件
+func ParsePocNucleiFiles(dirNucleiPoc embed.FS) (items []models.DataPocNuclei) {
+	err := fs.WalkDir(dirNucleiPoc, ".", func(path string, info fs.DirEntry, err error) error {
+		if filepath.Ext(path) == ".yaml" && !strings.HasSuffix(path, "workflow.yaml") {
+			catLog := strings.Split(path, "/")[3]
+			content, err := dirNucleiPoc.ReadFile(path)
+			if err != nil {
+				return nil
+			}
+
+			if strings.Contains(string(content), ": helpers/") {
+				return nil
+			}
+
+			template, err := ParsePocNucleiData(content)
+			if err != nil {
+				return nil
+			}
+
+			tType := template.Type().String()
+			if (tType != "http") && (tType != "network") {
+				tType = "other"
+			}
+
+			item := models.DataPocNuclei{
+				Template:    template,
+				PocName:     path,
+				PocScript:   string(content),
+				PocCatalog:  catLog,
+				PocProtocol: tType,
+			}
+
+			level := template.Info.SeverityHolder.Severity.String()
+			if level == "" {
+				item.VulLevel = "unknown"
+			} else {
+				item.VulLevel = level
+			}
+			items = append(items, item)
+		}
+		return nil
+	})
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	return items
+}
+
+// 解析Poc Nuclei到表格
+func ParsePocNucleiToTable(items []models.DataPocNuclei) (rows []table.Row) {
+	ID := 1
+	for _, poc := range items {
+		pocName := strings.TrimLeft(poc.PocName, "probe/pocs/nuclei/")
+		rows = append(rows, table.Row{ID, pocName, poc.PocCatalog, poc.PocProtocol, poc.VulLevel})
+		ID++
+	}
+	return
+}
+
+// 过滤 Poc Nuclei [表格形式]
+func FilterPocNucleiTable(arr []table.Row, fn func(pocName, vulLevel string, params models.Params) bool, p models.Params) (result []table.Row, total int) {
+	for _, item := range arr {
+		if fn(item[1].(string), item[4].(string), p) {
+			result = append(result, item)
+		}
+	}
+	return result, len(result)
+}
+
+// 过滤 Poc Nuclei
+func FilterPocNucleiData(arr []models.DataPocNuclei, fn func(pocName, vulLevel string, params models.Params) bool, p models.Params) (result []models.DataPocNuclei, total int) {
+	for _, item := range arr {
+		if fn(item.PocName, item.VulLevel, p) {
+			result = append(result, item)
+		}
+	}
+	return result, len(result)
+}
+
 // 加载POC
-func ParsePocNucleiFile(filePath string) (tpl *templates.Template, err error) {
-	tpl, err = templates.Parse(filePath, nil, ExecOptions)
+func ParsePocNucleiData(data []byte) (tpl *templates.Template, err error) {
+	file, err := ioutil.TempFile("./static", `tmp.*.yaml`)
+	if err != nil {
+		return
+	}
+
+	defer os.Remove(file.Name())
+
+	if _, err = file.Write(data); err != nil {
+		return
+	}
+
+	tpl, err = templates.Parse(file.Name(), nil, ExecOptions)
 	return
 }
 
@@ -85,11 +184,11 @@ func ExecutePocNuclei(url string, poc *templates.Template) (VulResult, error) {
 }
 
 // 扫描nuclei
-func ScanPocNuclei(url string, p *Poc) (success bool, packetSend string, packetRecv string, err error) {
+func ScanPocNuclei(url string, p *models.DataPocNuclei) (success bool, packetSend string, packetRecv string, err error) {
 	if p != nil && p.Template != nil {
 		res, err := ExecutePocNuclei(url, p.Template)
 		if err != nil {
-			return
+			return false, "", "", err
 		}
 		success = res.Status
 		packetSend = res.Request

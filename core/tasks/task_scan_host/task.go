@@ -23,6 +23,7 @@ type IpRangeStruct struct {
 }
 
 var ip []string
+
 var (
 	IpRange = map[string]int{}
 )

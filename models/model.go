@@ -1,18 +1,32 @@
 package models
 
+import (
+	"github.com/projectdiscovery/nuclei/v2/pkg/templates"
+)
+
 const (
 	S = 1
 	M = 60
 	H = 60 * 60
 )
 
-// poc脚本
+// Poc脚本
 type PocScript struct {
 	PocName     string
 	PocId       uint
 	PocContent  string
 	PocProtocol string
 	VulLevel    string
+}
+
+// Poc脚本-Nuclei
+type DataPocNuclei struct {
+	Template    *templates.Template
+	PocName     string `json:"poc_name"`     // poc名称
+	PocScript   string `json:"poc_script"`   // 脚本详情
+	PocCatalog  string `json:"poc_catalog"`  // poc类型
+	PocProtocol string `json:"poc_protocol"` // poc协议类型
+	VulLevel    string `json:"vul_level"`    // 严重等级
 }
 
 // 网站指纹
@@ -51,32 +65,39 @@ type OutputFingerprint struct {
 
 // 命令行参数
 type Params struct {
-	Lang                   string   // 语言
-	Host                   string   // 检测网段
-	Port                   string   // 端口
-	Protocol               string   // 协议
-	HostBlack              string   // 排除网段
-	MethodScanHost         string   // 验存方式：PING、ICMP、ARP
-	IFace                  string   // 出口网卡
-	WorkerScanHost         int      // 存活并发
-	WorkerScanPort         int      // 存活并发
-	WorkerScanSite         int      // 爬虫并发
-	IPs                    []string // IP集合
-	Urls                   []string // URL链接
-	Ports                  []uint   // 端口范围
-	Protocols              []string // 协议范围
-	TimeOutScanHost        int      // 存活超时
-	IsLog                  bool     // 显示日志
-	IsScreen               bool     // 是否截图
-	Rarity                 int      // 优先级
-	TimeOutScanPortConnect int      // 扫描连接超时
-	TimeOutScanPortSend    int      // 扫描发包超时
-	TimeOutScanPortRead    int      // 扫描读取超时
-	TimeOutScanSite        int      // 爬虫超时
-	TimeOutScreen          int      // 截图超时
-	IsNULLProbeOnly        bool     // 仅使用空探针
-	IsUseAllProbes         bool     // 使用全量探针
-	RuleProbe              string   // 指纹规则
+	Lang                   string          // 语言
+	Host                   string          // 检测网段
+	Port                   string          // 端口
+	Protocol               string          // 协议
+	HostBlack              string          // 排除网段
+	MethodScanHost         string          // 验存方式：PING、ICMP、ARP
+	IFace                  string          // 出口网卡
+	WorkerScanHost         int             // 存活并发
+	WorkerScanPort         int             // 存活并发
+	WorkerScanSite         int             // 爬虫并发
+	IPs                    []string        // IP集合
+	Urls                   []string        // URL链接
+	Ports                  []uint          // 端口范围
+	Protocols              []string        // 协议范围
+	TimeOutScanHost        int             // 存活超时
+	IsLog                  bool            // 显示日志
+	IsScreen               bool            // 是否截图
+	Rarity                 int             // 优先级
+	TimeOutScanPortConnect int             // 扫描连接超时
+	TimeOutScanPortSend    int             // 扫描发包超时
+	TimeOutScanPortRead    int             // 扫描读取超时
+	TimeOutScanSite        int             // 爬虫超时
+	TimeOutScreen          int             // 截图超时
+	IsNULLProbeOnly        bool            // 仅使用空探针
+	IsUseAllProbes         bool            // 使用全量探针
+	RuleProbe              string          // 指纹规则
+	ListPocNuclei          bool            // 列举PocNuclei
+	FilterPocName          string          // 筛选PocNuclei
+	FilterVulLevel         string          // 筛选PocNuclei
+	Sites                  []ScanSite      // 网站列表
+	Pocs                   []DataPocNuclei // Poc列表
+	TimeOutScanPocNuclei   int             // PocNuclei扫描超时
+	WorkerScanPoc          int             // Poc并发
 }
 
 // 主机存活结构
@@ -128,4 +149,22 @@ type ScanSite struct {
 	CmsMd5Str   string `json:"cms_md5_str"`  // CMS MD5字符串
 	CmsMd5Name  string `json:"cms_md5_name"` // CMS MD5系统名称
 	CmsInfo     string `json:"cms_info"`     // CMS信息
+}
+
+// POC结构
+type ScanPoc struct {
+	Url         string `json:"url"`
+	Ip          string `json:"ip"`   // ip
+	Port        string `json:"port"` // 端口
+	Title       string `json:"title"`
+	Keywords    string `json:"keywords"`
+	Description string `json:"description"`
+	StatusCode  string `json:"status_code"`
+	PacketSend  string `json:"packet_send"`
+	PacketRecv  string `json:"packet_recv"`
+	PocName     string `json:"poc_name"`
+	VulLevel    string `json:"vul_level"`    // 等级
+	PocProtocol string `json:"poc_protocol"` // 协议
+	PocCatalog  string `json:"poc_catalog"`  // 协议
+	CmsName     string `json:"cms_name"`     // CMS系统名称
 }

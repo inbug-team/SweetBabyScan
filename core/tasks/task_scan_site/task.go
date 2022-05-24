@@ -15,6 +15,8 @@ type taskScanSite struct {
 	req models.Params
 }
 
+var sites []models.ScanSite
+
 // 1.迭代方法
 func (t *taskScanSite) doIter(wg *sync.WaitGroup, worker chan bool, result chan utils.CountResult, task utils.Task, data ...interface{}) {
 	items := data[0]
@@ -55,6 +57,8 @@ func (t *taskScanSite) doTask(wg *sync.WaitGroup, worker chan bool, result chan 
 func (t *taskScanSite) doDone(item interface{}, buf *bufio.Writer) error {
 	result := item.(models.ScanSite)
 
+	sites = append(sites, result)
+
 	dataByte, _ := json.Marshal(result)
 	buf.WriteString(string(dataByte) + "\n")
 
@@ -70,7 +74,7 @@ func (t *taskScanSite) doAfter(data uint) {
 }
 
 // 执行并发爬虫
-func DoTaskScanSite(req models.Params) {
+func DoTaskScanSite(req models.Params) []models.ScanSite {
 	// 修改状态
 	task := taskScanSite{req: req}
 
@@ -104,4 +108,6 @@ func DoTaskScanSite(req models.Params) {
 		"site.txt",
 		req.Urls,
 	)
+
+	return sites
 }

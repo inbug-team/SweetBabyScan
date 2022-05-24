@@ -13,6 +13,7 @@ require (
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/godror/godror v0.33.2
 	github.com/gosnmp/gosnmp v1.34.0
+	github.com/jedib0t/go-pretty/v6 v6.3.1
 	github.com/jlaffaye/ftp v0.0.0-20220310202011-d2c44e311e78
 	github.com/lib/pq v1.10.6
 	github.com/logrusorgru/aurora v2.0.3+incompatible

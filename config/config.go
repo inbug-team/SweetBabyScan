@@ -2,7 +2,7 @@ package config
 
 import (
 	"SweetBabyScan/models"
-	_ "embed"
+	"embed"
 	"encoding/json"
 	"math/rand"
 	"time"
@@ -17,7 +17,13 @@ var AppStr string
 //go:embed probe/ua.json
 var UAStr string
 
-// cms指纹
+//go:embed probe/pocs/nuclei
+var DirPocNuclei embed.FS
+
+//go:embed probe/pocs/xray/pocs
+var DirPocXray embed.FS
+
+// cms 指纹
 var AppsData models.OutputFingerprints
 
 // ua
