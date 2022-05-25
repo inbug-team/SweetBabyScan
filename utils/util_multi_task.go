@@ -20,6 +20,7 @@ type Iter func(*sync.WaitGroup, chan bool, chan CountResult, Task, ...interface{
 type Done func(interface{}, *bufio.Writer) error
 type Ing func(float32)
 type After func(uint)
+type PrintResult func()
 
 func StaticLeftTime(t float32) string {
 	if t < models.M {
@@ -39,6 +40,7 @@ func MultiTask(
 	done Done,
 	after After,
 	msgStart, msgEnd, filename string,
+	printResult PrintResult,
 	data ...interface{},
 ) float32 {
 	var _time float32 = 0.0
@@ -111,7 +113,8 @@ Loop:
 	bar.Finish()
 	buf.Flush()
 	_time = float32(time.Since(start).Seconds())
+	printResult()
 	fmt.Println(fmt.Sprintf(`%s，执行总耗时：%f秒`, msgEnd, _time))
-	fmt.Println("****************<-END->****************")
+	fmt.Print("*****************<-END->*****************" + "\r\n\r\n")
 	return _time
 }

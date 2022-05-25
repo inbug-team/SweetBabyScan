@@ -12,7 +12,7 @@ import (
 )
 
 type taskScanPocNuclei struct {
-	req models.Params
+	params models.Params
 }
 
 var pocData []models.ScanPoc
@@ -78,7 +78,7 @@ func (t *taskScanPocNuclei) doDone(item interface{}, buf *bufio.Writer) error {
 	dataByte, _ := json.Marshal(result)
 	buf.WriteString(string(dataByte) + "\n")
 
-	if t.req.IsLog {
+	if t.params.IsLog {
 		fmt.Println(
 			fmt.Sprintf(
 				"[+][PocNuclei]发现web漏洞 %s <[Title:%s] [Name:%s] [Level:%s] [CataLog:%s]>",
@@ -101,7 +101,7 @@ func (t *taskScanPocNuclei) doAfter(data uint) {
 
 // 执行Poc漏洞扫描
 func DoTaskScanPocNuclei(req models.Params) {
-	task := taskScanPocNuclei{req: req}
+	task := taskScanPocNuclei{params: req}
 
 	totalTask := uint(len(req.Pocs)) * uint(len(req.Sites))
 	totalTime := uint(math.Ceil(float64(totalTask)/float64(req.WorkerScanPoc)) * float64(req.TimeOutScanPocNuclei))
@@ -124,6 +124,7 @@ func DoTaskScanPocNuclei(req models.Params) {
 		),
 		"完成PocNuclei漏洞检测",
 		"poc-nuclei.txt",
+		func() {},
 		req.Sites,
 		req.Pocs,
 	)

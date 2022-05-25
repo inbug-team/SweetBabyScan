@@ -11,5 +11,6 @@ func ShowTable(title string, header table.Row, data []table.Row) {
 	t.SetTitle(title)
 	t.AppendHeader(header)
 	t.AppendRows(data)
+	t.SetStyle(table.StyleColoredBright)
 	t.Render()
 }

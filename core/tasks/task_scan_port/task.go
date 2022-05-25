@@ -20,6 +20,7 @@ type taskScanPort struct {
 }
 
 var urls []string
+var vulData []models.WaitScanVul
 
 // 1.迭代方法
 func (t *taskScanPort) doIter(wg *sync.WaitGroup, worker chan bool, result chan utils.CountResult, task utils.Task, data ...interface{}) {
@@ -63,6 +64,7 @@ func (t *taskScanPort) doTask(wg *sync.WaitGroup, worker chan bool, result chan 
 // 3.保存结果
 func (t *taskScanPort) doDone(item interface{}, buf *bufio.Writer) error {
 	result := item.(plugin_scan_port.Result)
+
 	service := "其他"
 
 	if strings.HasPrefix(result.Service.Banner, "HTTP") {
@@ -119,6 +121,14 @@ func (t *taskScanPort) doDone(item interface{}, buf *bufio.Writer) error {
 		Probe:           result.ProbeName,
 	}
 
+	if data.Port == "135" || data.Port == "139" || data.Port == "445" {
+		vulData = append(vulData, models.WaitScanVul{
+			IP:   data.Ip,
+			Port: result.Target.Port,
+			Item: data,
+		})
+	}
+
 	dataByte, _ := json.Marshal(data)
 	buf.WriteString(string(dataByte) + "\n")
 
@@ -142,13 +152,13 @@ func (t *taskScanPort) doAfter(data uint) {
 }
 
 // 执行并发扫描
-func DoTaskScanPort(req models.Params) []string {
+func DoTaskScanPort(req models.Params) ([]string, []models.WaitScanVul) {
 	ips := req.IPs
 	ports := req.Ports
 	protocols := req.Protocols
 	totalTask := len(ips) * len(ports) * len(protocols)
 	if totalTask == 0 {
-		return []string{}
+		return []string{}, []models.WaitScanVul{}
 	}
 
 	var s plugin_scan_port.ScanPort
@@ -190,10 +200,11 @@ func DoTaskScanPort(req models.Params) []string {
 		),
 		"完成端口服务扫描",
 		"port.txt",
+		func() {},
 		ips,
 		ports,
 		protocols,
 	)
 
-	return urls
+	return urls, vulData
 }

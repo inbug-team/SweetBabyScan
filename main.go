@@ -10,6 +10,7 @@ import (
 	"github.com/inbug-team/SweetBabyScan/core/tasks/task_scan_poc_nuclei"
 	"github.com/inbug-team/SweetBabyScan/core/tasks/task_scan_port"
 	"github.com/inbug-team/SweetBabyScan/core/tasks/task_scan_site"
+	"github.com/inbug-team/SweetBabyScan/core/tasks/task_scan_vul"
 	"github.com/inbug-team/SweetBabyScan/initializes"
 	"github.com/inbug-team/SweetBabyScan/models"
 	"github.com/inbug-team/SweetBabyScan/utils"
@@ -89,9 +90,10 @@ func doTask(p models.Params) {
 	p.Pocs, _ = plugin_scan_poc_nuclei.FilterPocNucleiData(pocNuclei, fnFilter, p)
 
 	p.IPs = task_scan_host.DoTaskScanHost(p)
-	p.Urls = task_scan_port.DoTaskScanPort(p)
+	p.Urls, p.WaitVul = task_scan_port.DoTaskScanPort(p)
 	p.Sites = task_scan_site.DoTaskScanSite(p)
 	task_scan_poc_nuclei.DoTaskScanPocNuclei(p)
+	task_scan_vul.DoTaskScanVul(p)
 }
 
 func main() {

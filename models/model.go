@@ -96,6 +96,7 @@ type Params struct {
 	FilterVulLevel         string          // 筛选PocNuclei
 	Sites                  []ScanSite      // 网站列表
 	Pocs                   []DataPocNuclei // Poc列表
+	WaitVul                []WaitScanVul   // 待爬漏洞列表
 	TimeOutScanPocNuclei   int             // PocNuclei扫描超时
 	WorkerScanPoc          int             // Poc并发
 }
@@ -167,4 +168,11 @@ type ScanPoc struct {
 	PocProtocol string `json:"poc_protocol"` // 协议
 	PocCatalog  string `json:"poc_catalog"`  // 协议
 	CmsName     string `json:"cms_name"`     // CMS系统名称
+}
+
+// 等待扫描漏洞
+type WaitScanVul struct {
+	IP   string
+	Port uint
+	Item ScanPort
 }

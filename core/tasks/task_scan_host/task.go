@@ -6,6 +6,7 @@ import (
 	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_host"
 	"github.com/inbug-team/SweetBabyScan/models"
 	"github.com/inbug-team/SweetBabyScan/utils"
+	"github.com/jedib0t/go-pretty/v6/table"
 	"math"
 	"sort"
 	"strings"
@@ -124,23 +125,30 @@ func DoTaskScanHost(req models.Params) []string {
 		//"主机存活检测中",
 		"完成主机存活检测",
 		"ip.txt",
+		func() {
+			var listIpRange []IpRangeStruct
+			total := 0
+			for k, v := range IpRange {
+				listIpRange = append(listIpRange, IpRangeStruct{Key: k, Value: v})
+				total += v
+			}
+			sort.Slice(listIpRange, func(i, j int) bool {
+				return listIpRange[i].Value > listIpRange[j].Value
+			})
+
+			var segments []table.Row
+			id := 1
+			for _, v := range listIpRange {
+				segments = append(segments, table.Row{id, v.Key, v.Value})
+				id++
+			}
+			utils.ShowTable(
+				fmt.Sprintf("共发现：%d个网段，%d个IP", len(listIpRange), total),
+				table.Row{"#", "IP SEGMENT", "TOTAL"},
+				segments,
+			)
+		},
 		req.IPs,
 	)
-
-	var listIpRange []IpRangeStruct
-	total := 0
-	for k, v := range IpRange {
-		listIpRange = append(listIpRange, IpRangeStruct{Key: k, Value: v})
-		total += v
-	}
-	sort.Slice(listIpRange, func(i, j int) bool {
-		return listIpRange[i].Value > listIpRange[j].Value
-	})
-
-	fmt.Println(fmt.Sprintf("共发现：%d个IP", total))
-	for _, v := range listIpRange {
-		fmt.Println(fmt.Sprintf(`%-18s ->  %d`, v.Key, v.Value))
-	}
-	fmt.Println(fmt.Sprintf("共发现：%d个网段", len(listIpRange)))
 	return ip
 }

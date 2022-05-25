@@ -12,7 +12,7 @@ import (
 )
 
 type taskScanSite struct {
-	req models.Params
+	params models.Params
 }
 
 var sites []models.ScanSite
@@ -33,7 +33,7 @@ func (t *taskScanSite) doTask(wg *sync.WaitGroup, worker chan bool, result chan 
 	item := data[0].(string)
 	status := false
 	var site models.ScanSite
-	site = plugin_scan_site.DoScanSite(item, "", 0, t.req.TimeOutScanSite, t.req.TimeOutScreen, t.req.IsScreen)
+	site = plugin_scan_site.DoScanSite(item, "", 0, t.params.TimeOutScanSite, t.params.TimeOutScreen, t.params.IsScreen)
 	if site.StatusCode != "" {
 		status = true
 	}
@@ -62,7 +62,7 @@ func (t *taskScanSite) doDone(item interface{}, buf *bufio.Writer) error {
 	dataByte, _ := json.Marshal(result)
 	buf.WriteString(string(dataByte) + "\n")
 
-	if t.req.IsLog {
+	if t.params.IsLog {
 		fmt.Println(fmt.Sprintf(`[+]发现网站 %s <[Title:%s] [Code:%s] [Finger:%s]>`, result.Link, result.Title, result.StatusCode, result.CmsName))
 	}
 	return nil
@@ -76,7 +76,7 @@ func (t *taskScanSite) doAfter(data uint) {
 // 执行并发爬虫
 func DoTaskScanSite(req models.Params) []models.ScanSite {
 	// 修改状态
-	task := taskScanSite{req: req}
+	task := taskScanSite{params: req}
 
 	totalTask := uint(len(req.Urls))
 	var totalTime uint = 0
@@ -106,6 +106,7 @@ func DoTaskScanSite(req models.Params) []models.ScanSite {
 		),
 		"完成扫描网站CMS",
 		"site.txt",
+		func() {},
 		req.Urls,
 	)
 
