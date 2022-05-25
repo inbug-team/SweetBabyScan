@@ -1,8 +1,6 @@
 package task_scan_poc_nuclei
 
 import (
-	"bufio"
-	"encoding/json"
 	"fmt"
 	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_poc_nuclei"
 	"github.com/inbug-team/SweetBabyScan/models"
@@ -16,6 +14,8 @@ type taskScanPocNuclei struct {
 }
 
 var pocData []models.ScanPoc
+var i = 2
+var savePocs = map[string]interface{}{}
 
 // 1.迭代方法
 func (t *taskScanPocNuclei) doIter(wg *sync.WaitGroup, worker chan bool, result chan utils.CountResult, task utils.Task, data ...interface{}) {
@@ -49,6 +49,8 @@ func (t *taskScanPocNuclei) doTask(wg *sync.WaitGroup, worker chan bool, result 
 					PacketSend:  packetSend,
 					PacketRecv:  packetRecv,
 					PocName:     poc.PocName,
+					VulName:     poc.Template.Info.Name,
+					VulDesc:     poc.Template.Info.Description,
 					VulLevel:    poc.VulLevel,
 					PocProtocol: poc.PocProtocol,
 					PocCatalog:  poc.PocCatalog,
@@ -71,12 +73,18 @@ func (t *taskScanPocNuclei) doTask(wg *sync.WaitGroup, worker chan bool, result 
 }
 
 // 3.保存结果
-func (t *taskScanPocNuclei) doDone(item interface{}, buf *bufio.Writer) error {
+func (t *taskScanPocNuclei) doDone(item interface{}) error {
 	result := item.(models.ScanPoc)
 	pocData = append(pocData, result)
 
-	dataByte, _ := json.Marshal(result)
-	buf.WriteString(string(dataByte) + "\n")
+	savePocs[fmt.Sprintf("A%d", i)] = result.Ip
+	savePocs[fmt.Sprintf("B%d", i)] = "nuclei"
+	savePocs[fmt.Sprintf("C%d", i)] = result.Url
+	savePocs[fmt.Sprintf("D%d", i)] = result.VulName
+	savePocs[fmt.Sprintf("E%d", i)] = result.VulLevel
+	savePocs[fmt.Sprintf("F%d", i)] = result.VulDesc
+	savePocs[fmt.Sprintf("G%d", i)] = result.PocName
+	i++
 
 	if t.params.IsLog {
 		fmt.Println(
@@ -123,8 +131,10 @@ func DoTaskScanPocNuclei(req models.Params) {
 			req.TimeOutScanPocNuclei,
 		),
 		"完成PocNuclei漏洞检测",
-		"poc-nuclei.txt",
-		func() {},
+		func() {
+			// 保存数据-漏洞信息
+			utils.SaveData(req.SaveFile, "漏洞信息", savePocs)
+		},
 		req.Sites,
 		req.Pocs,
 	)

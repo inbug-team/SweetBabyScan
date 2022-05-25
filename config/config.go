@@ -23,6 +23,9 @@ var DirPocNuclei embed.FS
 //go:embed probe/pocs/xray/pocs
 var DirPocXray embed.FS
 
+//go:embed probe/tmp.xlsx
+var TmpExcel []byte
+
 // cms 指纹
 var AppsData models.OutputFingerprints
 

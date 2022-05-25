@@ -65,6 +65,7 @@ type OutputFingerprint struct {
 
 // 命令行参数
 type Params struct {
+	SaveFile               string          // 保存文件
 	Lang                   string          // 语言
 	Host                   string          // 检测网段
 	Port                   string          // 端口
@@ -164,6 +165,8 @@ type ScanPoc struct {
 	PacketSend  string `json:"packet_send"`
 	PacketRecv  string `json:"packet_recv"`
 	PocName     string `json:"poc_name"`
+	VulName     string `json:"vul_name"`
+	VulDesc     string `json:"vul_desc"`
 	VulLevel    string `json:"vul_level"`    // 等级
 	PocProtocol string `json:"poc_protocol"` // 协议
 	PocCatalog  string `json:"poc_catalog"`  // 协议

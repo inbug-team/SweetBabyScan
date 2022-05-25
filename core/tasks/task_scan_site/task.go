@@ -1,13 +1,12 @@
 package task_scan_site
 
 import (
-	"bufio"
-	"encoding/json"
 	"fmt"
 	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_site"
 	"github.com/inbug-team/SweetBabyScan/models"
 	"github.com/inbug-team/SweetBabyScan/utils"
 	"math"
+	"strings"
 	"sync"
 )
 
@@ -16,6 +15,8 @@ type taskScanSite struct {
 }
 
 var sites []models.ScanSite
+var i = 2
+var saveWeb = map[string]interface{}{}
 
 // 1.迭代方法
 func (t *taskScanSite) doIter(wg *sync.WaitGroup, worker chan bool, result chan utils.CountResult, task utils.Task, data ...interface{}) {
@@ -54,13 +55,23 @@ func (t *taskScanSite) doTask(wg *sync.WaitGroup, worker chan bool, result chan 
 }
 
 // 3.保存结果
-func (t *taskScanSite) doDone(item interface{}, buf *bufio.Writer) error {
+func (t *taskScanSite) doDone(item interface{}) error {
 	result := item.(models.ScanSite)
 
 	sites = append(sites, result)
-
-	dataByte, _ := json.Marshal(result)
-	buf.WriteString(string(dataByte) + "\n")
+	saveWeb[fmt.Sprintf("A%d", i)] = result.Ip
+	saveWeb[fmt.Sprintf("B%d", i)] = result.Port
+	if strings.HasPrefix(result.Link, "https") {
+		saveWeb[fmt.Sprintf("C%d", i)] = "https"
+	} else {
+		saveWeb[fmt.Sprintf("C%d", i)] = "http"
+	}
+	saveWeb[fmt.Sprintf("D%d", i)] = result.Link
+	saveWeb[fmt.Sprintf("E%d", i)] = result.Title
+	saveWeb[fmt.Sprintf("F%d", i)] = result.CmsName
+	saveWeb[fmt.Sprintf("G%d", i)] = result.StatusCode
+	saveWeb[fmt.Sprintf("H%d", i)] = "." + result.Image
+	i++
 
 	if t.params.IsLog {
 		fmt.Println(fmt.Sprintf(`[+]发现网站 %s <[Title:%s] [Code:%s] [Finger:%s]>`, result.Link, result.Title, result.StatusCode, result.CmsName))
@@ -105,8 +116,10 @@ func DoTaskScanSite(req models.Params) []models.ScanSite {
 			req.IsScreen,
 		),
 		"完成扫描网站CMS",
-		"site.txt",
-		func() {},
+		func() {
+			// 保存数据-WEB信息
+			utils.SaveData(req.SaveFile, "WEB", saveWeb)
+		},
 		req.Urls,
 	)
 

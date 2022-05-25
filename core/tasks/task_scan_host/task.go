@@ -1,7 +1,6 @@
 package task_scan_host
 
 import (
-	"bufio"
 	"fmt"
 	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_host"
 	"github.com/inbug-team/SweetBabyScan/models"
@@ -74,7 +73,7 @@ func (t *taskScanHost) doTask(wg *sync.WaitGroup, worker chan bool, result chan 
 }
 
 // 3.保存结果
-func (t *taskScanHost) doDone(item interface{}, buf *bufio.Writer) error {
+func (t *taskScanHost) doDone(item interface{}) error {
 	result := item.(models.ScanHost)
 	if _, ok := IpRange[result.IpRange]; ok {
 		IpRange[result.IpRange] += 1
@@ -82,8 +81,6 @@ func (t *taskScanHost) doDone(item interface{}, buf *bufio.Writer) error {
 		IpRange[result.IpRange] = 1
 	}
 	ip = append(ip, result.Ip)
-
-	buf.WriteString(fmt.Sprintf(`%s`, result.Ip) + "\n")
 
 	if t.params.IsLog {
 		fmt.Println(fmt.Sprintf("[+]发现存活主机 %s", result.Ip))
@@ -124,7 +121,6 @@ func DoTaskScanHost(req models.Params) []string {
 		),
 		//"主机存活检测中",
 		"完成主机存活检测",
-		"ip.txt",
 		func() {
 			var listIpRange []IpRangeStruct
 			total := 0
@@ -147,6 +143,25 @@ func DoTaskScanHost(req models.Params) []string {
 				table.Row{"#", "IP SEGMENT", "TOTAL"},
 				segments,
 			)
+
+			// 保存数据-存活IP
+			saveIps := map[string]interface{}{}
+			i := 2
+			for _, v := range ip {
+				saveIps[fmt.Sprintf("A%d", i)] = v
+				i++
+			}
+			utils.SaveData(req.SaveFile, "存活IP", saveIps)
+
+			// 保存数据-IP段
+			j := 2
+			saveIpSegments := map[string]interface{}{}
+			for _, v := range listIpRange {
+				saveIpSegments[fmt.Sprintf("A%d", j)] = v.Key
+				saveIpSegments[fmt.Sprintf("B%d", j)] = v.Value
+				j++
+			}
+			utils.SaveData(req.SaveFile, "IP段", saveIpSegments)
 		},
 		req.IPs,
 	)

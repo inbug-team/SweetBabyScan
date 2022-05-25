@@ -1,11 +1,9 @@
 package utils
 
 import (
-	"bufio"
 	"fmt"
 	"github.com/cheggaaa/pb/v3"
 	"github.com/inbug-team/SweetBabyScan/models"
-	"os"
 	"sync"
 	"time"
 )
@@ -17,7 +15,7 @@ type CountResult struct {
 
 type Task func(*sync.WaitGroup, chan bool, chan CountResult, ...interface{})
 type Iter func(*sync.WaitGroup, chan bool, chan CountResult, Task, ...interface{})
-type Done func(interface{}, *bufio.Writer) error
+type Done func(interface{}) error
 type Ing func(float32)
 type After func(uint)
 type PrintResult func()
@@ -39,7 +37,7 @@ func MultiTask(
 	task Task,
 	done Done,
 	after After,
-	msgStart, msgEnd, filename string,
+	msgStart, msgEnd string,
 	printResult PrintResult,
 	data ...interface{},
 ) float32 {
@@ -47,15 +45,6 @@ func MultiTask(
 	if totalTask == 0 {
 		return _time
 	}
-
-	// O_TRUNC 清空重写
-	file, err := os.OpenFile(filename, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0777)
-	if err != nil {
-		return _time
-	}
-	defer file.Close()
-
-	buf := bufio.NewWriter(file)
 
 	fmt.Println("****************<-START->****************")
 	fmt.Println(msgStart)
@@ -93,7 +82,7 @@ func MultiTask(
 			bar.Add(int(number))
 			// 保存数据
 			if newItem != nil {
-				if err := done(newItem, buf); err == nil {
+				if err := done(newItem); err == nil {
 					doneTask++
 					bar.Set("alive", fmt.Sprintf("[+](%d)", doneTask))
 				}
@@ -111,7 +100,6 @@ func MultiTask(
 	}
 Loop:
 	bar.Finish()
-	buf.Flush()
 	_time = float32(time.Since(start).Seconds())
 	printResult()
 	fmt.Println(fmt.Sprintf(`%s，执行总耗时：%f秒`, msgEnd, _time))

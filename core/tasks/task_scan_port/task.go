@@ -1,8 +1,6 @@
 package task_scan_port
 
 import (
-	"bufio"
-	"encoding/json"
 	"fmt"
 	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_port"
 	"github.com/inbug-team/SweetBabyScan/models"
@@ -21,6 +19,8 @@ type taskScanPort struct {
 
 var urls []string
 var vulData []models.WaitScanVul
+var i = 2
+var savePorts = map[string]interface{}{}
 
 // 1.迭代方法
 func (t *taskScanPort) doIter(wg *sync.WaitGroup, worker chan bool, result chan utils.CountResult, task utils.Task, data ...interface{}) {
@@ -62,7 +62,7 @@ func (t *taskScanPort) doTask(wg *sync.WaitGroup, worker chan bool, result chan 
 }
 
 // 3.保存结果
-func (t *taskScanPort) doDone(item interface{}, buf *bufio.Writer) error {
+func (t *taskScanPort) doDone(item interface{}) error {
 	result := item.(plugin_scan_port.Result)
 
 	service := "其他"
@@ -121,6 +121,12 @@ func (t *taskScanPort) doDone(item interface{}, buf *bufio.Writer) error {
 		Probe:           result.ProbeName,
 	}
 
+	savePorts[fmt.Sprintf("A%d", i)] = data.Ip
+	savePorts[fmt.Sprintf("B%d", i)] = data.Port
+	savePorts[fmt.Sprintf("C%d", i)] = data.Service
+	savePorts[fmt.Sprintf("D%d", i)] = data.Probe
+	i++
+
 	if data.Port == "135" || data.Port == "139" || data.Port == "445" {
 		vulData = append(vulData, models.WaitScanVul{
 			IP:   data.Ip,
@@ -128,9 +134,6 @@ func (t *taskScanPort) doDone(item interface{}, buf *bufio.Writer) error {
 			Item: data,
 		})
 	}
-
-	dataByte, _ := json.Marshal(data)
-	buf.WriteString(string(dataByte) + "\n")
 
 	if t.params.IsLog {
 		fmt.Println(fmt.Sprintf(
@@ -199,8 +202,10 @@ func DoTaskScanPort(req models.Params) ([]string, []models.WaitScanVul) {
 			req.Protocol,
 		),
 		"完成端口服务扫描",
-		"port.txt",
-		func() {},
+		func() {
+			// 保存数据-端口信息
+			utils.SaveData(req.SaveFile, "端口信息", savePorts)
+		},
 		ips,
 		ports,
 		protocols,

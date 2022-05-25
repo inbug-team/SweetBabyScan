@@ -1,7 +1,6 @@
 package task_scan_vul
 
 import (
-	"bufio"
 	"encoding/json"
 	"fmt"
 	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_ms17010"
@@ -138,7 +137,7 @@ func (t *taskScanVul) doTask(wg *sync.WaitGroup, worker chan bool, result chan u
 }
 
 // 3.保存结果
-func (t *taskScanVul) doDone(item interface{}, buf *bufio.Writer) (err error) {
+func (t *taskScanVul) doDone(item interface{}) (err error) {
 	result := item.(map[string]string)
 
 	if t.params.IsLog {
@@ -190,9 +189,6 @@ func (t *taskScanVul) doDone(item interface{}, buf *bufio.Writer) (err error) {
 		}
 	}
 
-	dataByte, _ := json.Marshal(result)
-	buf.WriteString(string(dataByte) + "\n")
-
 	return err
 }
 
@@ -223,8 +219,9 @@ func DoTaskScanVul(req models.Params) {
 			req.TimeOutScanPortConnect,
 		),
 		"完成系统高危漏洞+网卡识别+域控探测",
-		"vul.txt",
-		func() {},
+		func() {
+			//
+		},
 		req.WaitVul,
 	)
 
