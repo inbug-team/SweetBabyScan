@@ -89,7 +89,7 @@ GOOS=linux GOARCH=386 go build -ldflags="-s -w" -trimpath -o SbScan
 
 ```text
 Usage:
-  ./SbScan [flags]
+  ./SweetBabyScan [flags]
 
 Flags:
    -l, -lang string                    语言 (default "zh-cn")
@@ -99,7 +99,7 @@ Flags:
    -p, -port string                    端口范围：tiny[精简]、normal[常用]、database[数据库]、caffe[咖啡厅/酒店/机场]、iot[物联网]、all[全部]、自定义 (default "tiny")
    -pt, -protocol string               端口范围：tcp、udp、tcp+udp (default "tcp+udp")
    -hb, -hostBlack string              排除网段
-   -msh, -methodScanHost string        验存方式：PING、ICMP、ARP (default "PING")
+   -msh, -methodScanHost string        验存方式：PING、ICMP (default "PING")
    -if, -iFace string                  出口网卡
    -wsh, -workerScanHost int           存活并发 (default 250)
    -tsh, -timeOutScanHost int          存活超时 (default 3)
@@ -113,6 +113,11 @@ Flags:
    -wss, -workerScanSite int           爬虫并发 (default 16)
    -tss, -timeOutScanSite int          爬虫超时 (default 3)
    -ts, -timeOutScreen int             截图超时 (default 60)
+   -lpn, -listPocNuclei                是否列举Nuclei Poc
+   -fpn, -filterPocName string         筛选POC名称，多个关键字英文逗号隔开
+   -fvl, -filterVulLevel string        筛选POC严重等级：critical[严重] > high[高危] > medium[中危] > low[低危] > info[信息]、unknown[未知]，多个关键字英文逗号隔开
+   -tspn, -timeOutScanPocNuclei int    PocNuclei扫描超时 (default 6)
+   -wsPoc, -workerScanPoc int          Poc并发 (default 100)
 ```
 
 ### 四、更新日志
