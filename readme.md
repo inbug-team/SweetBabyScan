@@ -13,7 +13,9 @@
 ![3](img/3.png)
 ![4](img/4.png)
 ![5](img/5.png)
-
+![13](img/13.png)
+![14](img/14.png)
+![17](img/17.png)
 调高探测与扫描并发
 ```
 ./SbScan -h 192.168.0.0/16 -wsh 500 --wsp 500
@@ -29,6 +31,14 @@
 ![9](img/9.png)
 ![10](img/10.png)
 
+列出weblogic漏洞对应的poc
+```
+./SbScan --lpn --fpn weblogic
+```
+![15](img/15.png)
+
+列出thinkphp漏洞对应的poc
+![16](img/16.png)
 
 
 ### 一、编译
