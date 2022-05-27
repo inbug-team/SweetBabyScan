@@ -26,6 +26,9 @@ var DirPocXray embed.FS
 //go:embed probe/tmp.xlsx
 var TmpExcel []byte
 
+//go:embed probe/passwords
+var Passwords embed.FS
+
 // cms 指纹
 var AppsData models.OutputFingerprints
 

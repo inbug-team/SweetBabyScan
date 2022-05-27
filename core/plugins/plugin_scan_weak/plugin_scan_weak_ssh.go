@@ -2,7 +2,6 @@ package plugin_scan_weak
 
 import (
 	"fmt"
-	"github.com/inbug-team/SweetBabyScan/utils"
 	"golang.org/x/crypto/ssh"
 	"net"
 	"time"
@@ -22,16 +21,14 @@ func CheckSSH(ip, user, pwd string, port uint) bool {
 	client, err := ssh.Dial("tcp", fmt.Sprintf(`%s:%d`, ip, port), config)
 	if err == nil {
 		defer func() {
-			err := client.Close()
-			utils.PrintErr(err)
+			client.Close()
 		}()
 		session, err := client.NewSession()
 		if err == nil {
 			errEcho := session.Run("echo hello")
 			if errEcho == nil {
 				defer func() {
-					err := session.Close()
-					utils.PrintErr(err)
+					session.Close()
 				}()
 				result = true
 			}

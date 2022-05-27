@@ -17,6 +17,7 @@ require (
 	github.com/jlaffaye/ftp v0.0.0-20220524001917-dfa1e758f3af
 	github.com/lib/pq v1.10.6
 	github.com/logrusorgru/aurora v2.0.3+incompatible
+	github.com/nasdf/ulimit v0.0.1
 	github.com/olivere/elastic/v7 v7.0.32
 	github.com/projectdiscovery/goflags v0.0.8-0.20220412061559-5119d6086323
 	github.com/projectdiscovery/nuclei/v2 v2.7.1

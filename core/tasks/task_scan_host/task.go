@@ -146,20 +146,20 @@ func DoTaskScanHost(req models.Params) []string {
 
 			// 保存数据-存活IP
 			saveIps := map[string]interface{}{}
-			i := 2
+			indexIps := 2
 			for _, v := range ip {
-				saveIps[fmt.Sprintf("A%d", i)] = v
-				i++
+				saveIps[fmt.Sprintf("A%d", indexIps)] = v
+				indexIps++
 			}
 			utils.SaveData(req.SaveFile, "存活IP", saveIps)
 
 			// 保存数据-IP段
-			j := 2
+			indexIpSegments := 2
 			saveIpSegments := map[string]interface{}{}
 			for _, v := range listIpRange {
-				saveIpSegments[fmt.Sprintf("A%d", j)] = v.Key
-				saveIpSegments[fmt.Sprintf("B%d", j)] = v.Value
-				j++
+				saveIpSegments[fmt.Sprintf("A%d", indexIpSegments)] = v.Key
+				saveIpSegments[fmt.Sprintf("B%d", indexIpSegments)] = v.Value
+				indexIpSegments++
 			}
 			utils.SaveData(req.SaveFile, "IP段", saveIpSegments)
 		},

@@ -2,7 +2,6 @@ package plugin_scan_weak
 
 import (
 	"fmt"
-	"github.com/inbug-team/SweetBabyScan/utils"
 	"github.com/jlaffaye/ftp"
 	"time"
 )
@@ -19,8 +18,7 @@ func CheckFTP(ip, user, pwd string, port uint) bool {
 		return false
 	}
 
-	err = client.Quit()
-	utils.PrintErr(err)
+	client.Quit()
 
 	return true
 }

@@ -7,7 +7,6 @@ import (
 	_ "github.com/denisenkom/go-mssqldb"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/godror/godror"
-	"github.com/inbug-team/SweetBabyScan/utils"
 	_ "github.com/lib/pq"
 	"os"
 	"time"
@@ -49,8 +48,7 @@ func checkMySQL(ip, user, pwd string, port uint) bool {
 		db.SetConnMaxIdleTime(6 * time.Second)
 		db.SetMaxIdleConns(0)
 		defer func() {
-			err := db.Close()
-			utils.PrintErr(err)
+			db.Close()
 		}()
 		err = db.Ping()
 		if err == nil {
@@ -76,8 +74,7 @@ func checkPgSQL(ip, user, pwd string, port uint) bool {
 	if err == nil {
 		db.SetConnMaxLifetime(6 * time.Second)
 		defer func() {
-			err := db.Close()
-			utils.PrintErr(err)
+			db.Close()
 		}()
 		err = db.Ping()
 		if err == nil {
@@ -104,8 +101,7 @@ func checkMSSQL(ip, user, pwd string, port uint) bool {
 		db.SetConnMaxIdleTime(6 * time.Second)
 		db.SetMaxIdleConns(0)
 		defer func() {
-			err := db.Close()
-			utils.PrintErr(err)
+			db.Close()
 		}()
 		err = db.Ping()
 		if err == nil {
@@ -129,8 +125,7 @@ func checkClickHouse(ip, user, pwd string, port uint) bool {
 	db, err := sql.Open("clickhouse", connStr)
 	if err == nil {
 		defer func() {
-			err := db.Close()
-			utils.PrintErr(err)
+			db.Close()
 		}()
 		err = db.Ping()
 		if err == nil {
@@ -155,8 +150,7 @@ func checkOracle(ip, user, pwd string, port uint) bool {
 	db, err := sql.Open("godror", connStr)
 	if err == nil {
 		defer func() {
-			err := db.Close()
-			utils.PrintErr(err)
+			db.Close()
 		}()
 		err = db.Ping()
 		if err == nil {

@@ -14,7 +14,7 @@ type taskScanPocNuclei struct {
 }
 
 var pocData []models.ScanPoc
-var i = 2
+var index = 2
 var savePocs = map[string]interface{}{}
 
 // 1.迭代方法
@@ -77,14 +77,14 @@ func (t *taskScanPocNuclei) doDone(item interface{}) error {
 	result := item.(models.ScanPoc)
 	pocData = append(pocData, result)
 
-	savePocs[fmt.Sprintf("A%d", i)] = result.Ip
-	savePocs[fmt.Sprintf("B%d", i)] = "nuclei"
-	savePocs[fmt.Sprintf("C%d", i)] = result.Url
-	savePocs[fmt.Sprintf("D%d", i)] = result.VulName
-	savePocs[fmt.Sprintf("E%d", i)] = result.VulLevel
-	savePocs[fmt.Sprintf("F%d", i)] = result.VulDesc
-	savePocs[fmt.Sprintf("G%d", i)] = result.PocName
-	i++
+	savePocs[fmt.Sprintf("A%d", index)] = result.Ip
+	savePocs[fmt.Sprintf("B%d", index)] = "nuclei"
+	savePocs[fmt.Sprintf("C%d", index)] = result.Url
+	savePocs[fmt.Sprintf("D%d", index)] = result.VulName
+	savePocs[fmt.Sprintf("E%d", index)] = result.VulLevel
+	savePocs[fmt.Sprintf("F%d", index)] = result.VulDesc
+	savePocs[fmt.Sprintf("G%d", index)] = result.PocName
+	index++
 
 	if t.params.IsLog {
 		fmt.Println(

@@ -65,41 +65,45 @@ type OutputFingerprint struct {
 
 // 命令行参数
 type Params struct {
-	SaveFile               string          // 保存文件
-	Lang                   string          // 语言
-	Host                   string          // 检测网段
-	Port                   string          // 端口
-	Protocol               string          // 协议
-	HostBlack              string          // 排除网段
-	MethodScanHost         string          // 验存方式：PING、ICMP、ARP
-	IFace                  string          // 出口网卡
-	WorkerScanHost         int             // 存活并发
-	WorkerScanPort         int             // 存活并发
-	WorkerScanSite         int             // 爬虫并发
-	IPs                    []string        // IP集合
-	Urls                   []string        // URL链接
-	Ports                  []uint          // 端口范围
-	Protocols              []string        // 协议范围
-	TimeOutScanHost        int             // 存活超时
-	IsLog                  bool            // 显示日志
-	IsScreen               bool            // 是否截图
-	Rarity                 int             // 优先级
-	TimeOutScanPortConnect int             // 扫描连接超时
-	TimeOutScanPortSend    int             // 扫描发包超时
-	TimeOutScanPortRead    int             // 扫描读取超时
-	TimeOutScanSite        int             // 爬虫超时
-	TimeOutScreen          int             // 截图超时
-	IsNULLProbeOnly        bool            // 仅使用空探针
-	IsUseAllProbes         bool            // 使用全量探针
-	RuleProbe              string          // 指纹规则
-	ListPocNuclei          bool            // 列举PocNuclei
-	FilterPocName          string          // 筛选PocNuclei
-	FilterVulLevel         string          // 筛选PocNuclei
-	Sites                  []ScanSite      // 网站列表
-	Pocs                   []DataPocNuclei // Poc列表
-	WaitVul                []WaitScanVul   // 待爬漏洞列表
-	TimeOutScanPocNuclei   int             // PocNuclei扫描超时
-	WorkerScanPoc          int             // Poc并发
+	SaveFile               string                         // 保存文件
+	Lang                   string                         // 语言
+	Host                   string                         // 检测网段
+	Port                   string                         // 端口
+	Protocol               string                         // 协议
+	HostBlack              string                         // 排除网段
+	MethodScanHost         string                         // 验存方式：PING、ICMP、ARP
+	IFace                  string                         // 出口网卡
+	WorkerScanHost         int                            // 存活并发
+	WorkerScanPort         int                            // 存活并发
+	WorkerScanSite         int                            // 爬虫并发
+	IPs                    []string                       // IP集合
+	Urls                   []string                       // URL链接
+	Ports                  []uint                         // 端口范围
+	Protocols              []string                       // 协议范围
+	TimeOutScanHost        int                            // 存活超时
+	IsLog                  bool                           // 显示日志
+	IsScreen               bool                           // 是否截图
+	Rarity                 int                            // 优先级
+	TimeOutScanPortConnect int                            // 扫描连接超时
+	TimeOutScanPortSend    int                            // 扫描发包超时
+	TimeOutScanPortRead    int                            // 扫描读取超时
+	TimeOutScanSite        int                            // 爬虫超时
+	TimeOutScreen          int                            // 截图超时
+	IsNULLProbeOnly        bool                           // 仅使用空探针
+	IsUseAllProbes         bool                           // 使用全量探针
+	RuleProbe              string                         // 指纹规则
+	ListPocNuclei          bool                           // 列举PocNuclei
+	FilterPocName          string                         // 筛选PocNuclei
+	FilterVulLevel         string                         // 筛选PocNuclei
+	Sites                  []ScanSite                     // 网站列表
+	Pocs                   []DataPocNuclei                // Poc列表
+	WaitVul                []WaitScanVul                  // 待爬漏洞列表
+	TimeOutScanPocNuclei   int                            // PocNuclei扫描超时
+	WorkerScanPoc          int                            // Poc并发
+	WaitWeak               []WaitScanWeak                 // 待爬漏洞列表
+	UserPass               map[string]map[string][]string // 弱口令字典
+	WorkerScanWeak         int                            // 爆破并发
+	GroupScanWeak          int                            // 爆破分组
 }
 
 // 主机存活结构
@@ -118,7 +122,7 @@ type ScanPort struct {
 	Port            string `json:"port"`             // 端口
 	Protocol        string `json:"protocol"`         // 协议
 	Service         string `json:"service"`          // 服务
-	ServiceCategory string `json:"service_category"` //服务分类
+	ServiceCategory string `json:"service_category"` // 服务分类
 	Product         string `json:"product"`          // 产品
 	Version         string `json:"version"`          // 版本
 	Banner          string `json:"banner"`           // Banner
@@ -173,9 +177,29 @@ type ScanPoc struct {
 	CmsName     string `json:"cms_name"`     // CMS系统名称
 }
 
+// 爆破结构
+type ScanWeak struct {
+	Ip       string `json:"ip"`       // ip
+	Port     string `json:"port"`     // 端口
+	Service  string `json:"service"`  // 服务
+	Probe    string `json:"probe"`    // 探针
+	Protocol string `json:"protocol"` // 协议
+	User     string `json:"user"`     // 账号
+	Pass     string `json:"pass"`     // 密码
+}
+
 // 等待扫描漏洞
 type WaitScanVul struct {
 	IP   string
 	Port uint
 	Item ScanPort
+}
+
+// 等待爆破服务
+type WaitScanWeak struct {
+	Ip       string `json:"ip"`       // ip
+	Port     string `json:"port"`     // 端口
+	Service  string `json:"service"`  // 服务
+	Probe    string `json:"probe"`    // 探针
+	Protocol string `json:"protocol"` // 协议
 }

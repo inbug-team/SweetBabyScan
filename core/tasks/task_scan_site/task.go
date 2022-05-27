@@ -6,6 +6,7 @@ import (
 	"github.com/inbug-team/SweetBabyScan/models"
 	"github.com/inbug-team/SweetBabyScan/utils"
 	"math"
+	"strconv"
 	"strings"
 	"sync"
 )
@@ -15,7 +16,7 @@ type taskScanSite struct {
 }
 
 var sites []models.ScanSite
-var i = 2
+var index = 2
 var saveWeb = map[string]interface{}{}
 
 // 1.迭代方法
@@ -34,7 +35,7 @@ func (t *taskScanSite) doTask(wg *sync.WaitGroup, worker chan bool, result chan 
 	item := data[0].(string)
 	status := false
 	var site models.ScanSite
-	site = plugin_scan_site.DoScanSite(item, "", 0, t.params.TimeOutScanSite, t.params.TimeOutScreen, t.params.IsScreen)
+	site = plugin_scan_site.DoScanSite(item, t.params.TimeOutScanSite, t.params.TimeOutScreen, t.params.IsScreen)
 	if site.StatusCode != "" {
 		status = true
 	}
@@ -59,19 +60,19 @@ func (t *taskScanSite) doDone(item interface{}) error {
 	result := item.(models.ScanSite)
 
 	sites = append(sites, result)
-	saveWeb[fmt.Sprintf("A%d", i)] = result.Ip
-	saveWeb[fmt.Sprintf("B%d", i)] = result.Port
+	saveWeb[fmt.Sprintf("A%d", index)] = result.Ip
+	saveWeb[fmt.Sprintf("B%d", index)], _ = strconv.Atoi(result.Port)
 	if strings.HasPrefix(result.Link, "https") {
-		saveWeb[fmt.Sprintf("C%d", i)] = "https"
+		saveWeb[fmt.Sprintf("C%d", index)] = "https"
 	} else {
-		saveWeb[fmt.Sprintf("C%d", i)] = "http"
+		saveWeb[fmt.Sprintf("C%d", index)] = "http"
 	}
-	saveWeb[fmt.Sprintf("D%d", i)] = result.Link
-	saveWeb[fmt.Sprintf("E%d", i)] = result.Title
-	saveWeb[fmt.Sprintf("F%d", i)] = result.CmsName
-	saveWeb[fmt.Sprintf("G%d", i)] = result.StatusCode
-	saveWeb[fmt.Sprintf("H%d", i)] = "." + result.Image
-	i++
+	saveWeb[fmt.Sprintf("D%d", index)] = result.Link
+	saveWeb[fmt.Sprintf("E%d", index)] = result.Title
+	saveWeb[fmt.Sprintf("F%d", index)] = result.CmsName
+	saveWeb[fmt.Sprintf("G%d", index)] = result.StatusCode
+	saveWeb[fmt.Sprintf("H%d", index)] = "." + result.Image
+	index++
 
 	if t.params.IsLog {
 		fmt.Println(fmt.Sprintf(`[+]发现网站 %s <[Title:%s] [Code:%s] [Finger:%s]>`, result.Link, result.Title, result.StatusCode, result.CmsName))

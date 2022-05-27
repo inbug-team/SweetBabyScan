@@ -16,6 +16,7 @@ import (
 	"io/ioutil"
 	"math/big"
 	"net/http"
+	netUrl "net/url"
 	"reflect"
 	"strconv"
 	"strings"
@@ -94,7 +95,7 @@ func ConvertCharset(dataByte []byte) string {
 	return sourceCode
 }
 
-func DoScanSite(url, ip string, port uint, timeOutScanSite, timeOutScreen int, isScreen bool) (site models.ScanSite) {
+func DoScanSite(url string, timeOutScanSite, timeOutScreen int, isScreen bool) (site models.ScanSite) {
 
 	// 构造GET请求
 	request, err := http.NewRequest("GET", url, nil)
@@ -216,10 +217,28 @@ func DoScanSite(url, ip string, port uint, timeOutScanSite, timeOutScreen int, i
 		}
 	})
 
+	//icon := ""
+	//doc.Find("link").Each(func(i int, s *goquery.Selection) {
+	//	if s != nil {
+	//		v, ok := "", false
+	//		if v, ok = s.Attr("rel"); ok {
+	//			val, _ := s.Attr("href")
+	//			switch strings.ToLower(v) {
+	//			case "shortcut icon":
+	//				icon = val
+	//			case "icon":
+	//				icon = val
+	//			}
+	//		}
+	//	}
+	//})
+
 	header, _ := json.Marshal(resp.Header)
 	site.Header = string(header)
-	site.Port = strconv.Itoa(int(port))
-	site.Ip = ip
+
+	host, _ := netUrl.Parse(url)
+	site.Port = host.Port()
+	site.Ip = strings.Split(host.Host, ":")[0]
 	site.StatusCode = strconv.Itoa(resp.StatusCode)
 	site.Link = url
 

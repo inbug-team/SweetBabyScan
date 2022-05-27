@@ -6,6 +6,7 @@ import (
 	"github.com/inbug-team/SweetBabyScan/models"
 	"github.com/inbug-team/SweetBabyScan/utils"
 	"math"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -19,7 +20,8 @@ type taskScanPort struct {
 
 var urls []string
 var vulData []models.WaitScanVul
-var i = 2
+var weakData []models.WaitScanWeak
+var index = 2
 var savePorts = map[string]interface{}{}
 
 // 1.迭代方法
@@ -72,31 +74,31 @@ func (t *taskScanPort) doDone(item interface{}) error {
 		urls = append(urls, fmt.Sprintf("http://%s:%d", result.IP, result.Port))
 		urls = append(urls, fmt.Sprintf("https://%s:%d", result.IP, result.Port))
 	} else if result.Service.Name == "redis" || result.ProbeName == "redis-server" {
-		service = "Redis"
+		service = "redis"
 	} else if result.Service.Name == "ssh" {
-		service = "SSH"
+		service = "ssh"
 	} else if result.Service.Name == "mongodb" || result.ProbeName == "mongodb" {
-		service = "MongoDB"
+		service = "mongodb"
 	} else if result.Service.Name == "mysql" {
-		service = "MySQL"
+		service = "mysql"
 	} else if result.ProbeName == "ms-sql-s" {
-		service = "MSSQL"
+		service = "sqlserver"
 	} else if result.Service.Name == "ftp" {
-		service = "FTP"
+		service = "ftp"
 	} else if result.Service.Name == "postgresql" {
-		service = "PgSQL"
+		service = "postgres"
 	} else if result.Service.Name == "oracle" {
-		service = "Oracle"
+		service = "oracle"
 	} else if result.Service.Name == "clickhouse" {
-		service = "ClickHouse"
+		service = "clickhouse"
 	} else if result.Service.Name == "elasticsearch" {
-		service = "ElasticSearch"
+		service = "elasticsearch"
 	} else if result.Service.Name == "snmp" || result.ProbeName == "SNMPv1public" || result.ProbeName == "SNMPv3GetRequest" {
-		service = "SNMP"
+		service = "snmp"
 	} else if result.ProbeName == "SMBProgNeg" {
-		service = "SMB"
+		service = "smb"
 	} else if result.ProbeName == "TerminalServer" || result.ProbeName == "TLSSessionReq" || result.ProbeName == "TerminalServerCookie" {
-		service = "RDP"
+		service = "rdp"
 	}
 
 	data := models.ScanPort{
@@ -121,17 +123,32 @@ func (t *taskScanPort) doDone(item interface{}) error {
 		Probe:           result.ProbeName,
 	}
 
-	savePorts[fmt.Sprintf("A%d", i)] = data.Ip
-	savePorts[fmt.Sprintf("B%d", i)] = data.Port
-	savePorts[fmt.Sprintf("C%d", i)] = data.Service
-	savePorts[fmt.Sprintf("D%d", i)] = data.Probe
-	i++
+	savePorts[fmt.Sprintf("A%d", index)] = data.Ip
+	savePorts[fmt.Sprintf("B%d", index)], _ = strconv.Atoi(data.Port)
+	savePorts[fmt.Sprintf("C%d", index)] = data.Service
+	savePorts[fmt.Sprintf("D%d", index)] = data.Probe
+	index++
 
 	if data.Port == "135" || data.Port == "139" || data.Port == "445" {
 		vulData = append(vulData, models.WaitScanVul{
 			IP:   data.Ip,
 			Port: result.Target.Port,
 			Item: data,
+		})
+	}
+
+	if utils.Contains([]string{
+		"redis", "ssh", "mongodb",
+		"mysql", "sqlserver", "ftp",
+		"postgres", "clickhouse", "elasticsearch",
+		"snmp", "smb",
+	}, service) >= 0 {
+		weakData = append(weakData, models.WaitScanWeak{
+			Ip:       data.Ip,
+			Port:     data.Port,
+			Service:  service,
+			Probe:    data.Probe,
+			Protocol: data.Protocol,
 		})
 	}
 
@@ -155,13 +172,13 @@ func (t *taskScanPort) doAfter(data uint) {
 }
 
 // 执行并发扫描
-func DoTaskScanPort(req models.Params) ([]string, []models.WaitScanVul) {
+func DoTaskScanPort(req models.Params) ([]string, []models.WaitScanVul, []models.WaitScanWeak) {
 	ips := req.IPs
 	ports := req.Ports
 	protocols := req.Protocols
 	totalTask := len(ips) * len(ports) * len(protocols)
 	if totalTask == 0 {
-		return []string{}, []models.WaitScanVul{}
+		return []string{}, []models.WaitScanVul{}, []models.WaitScanWeak{}
 	}
 
 	var s plugin_scan_port.ScanPort
@@ -211,5 +228,5 @@ func DoTaskScanPort(req models.Params) ([]string, []models.WaitScanVul) {
 		protocols,
 	)
 
-	return urls, vulData
+	return urls, vulData, weakData
 }

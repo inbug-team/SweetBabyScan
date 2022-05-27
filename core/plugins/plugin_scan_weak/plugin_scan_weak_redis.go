@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-redis/redis/v8"
-	"github.com/inbug-team/SweetBabyScan/utils"
 	"time"
 )
 
@@ -18,8 +17,7 @@ func CheckRedis(ip, user, pwd string, port uint) bool {
 	})
 
 	defer func() {
-		err := client.Close()
-		utils.PrintErr(err)
+		client.Close()
 	}()
 
 	ctx := context.Background()

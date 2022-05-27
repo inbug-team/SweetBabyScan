@@ -20,6 +20,13 @@ type taskScanVul struct {
 	params models.Params
 }
 
+var saveNetBios = map[string]interface{}{}
+var indexNetBios = 2
+var saveNet = map[string]interface{}{}
+var indexNet = 2
+var saveVul = map[string]interface{}{}
+var indexVul = 2
+
 // 1.迭代方法
 func (t *taskScanVul) doIter(wg *sync.WaitGroup, worker chan bool, result chan utils.CountResult, task utils.Task, data ...interface{}) {
 	items := data[0]
@@ -125,7 +132,6 @@ func (t *taskScanVul) doTask(wg *sync.WaitGroup, worker chan bool, result chan u
 	case res := <-tmpResult:
 		result <- res
 	case <-time.After(time.Duration(t.params.TimeOutScanPortConnect) * time.Second):
-		//fmt.Println(fmt.Sprintf(`%s:%d timeout`, item.IP, item.Port))
 		result <- utils.CountResult{
 			Count:  1,
 			Result: nil,
@@ -143,6 +149,7 @@ func (t *taskScanVul) doDone(item interface{}) (err error) {
 	if t.params.IsLog {
 		switch result["type"] {
 		case "group445":
+			var ip, port string
 			if result["MS17-010"] != "" {
 				var record map[string]string
 				err = json.Unmarshal([]byte(result["MS17-010"]), &record)
@@ -150,6 +157,8 @@ func (t *taskScanVul) doDone(item interface{}) (err error) {
 					return err
 				}
 				fmt.Println(fmt.Sprintf(`[+]发现MS17-010漏洞 %s:%s`, record["ip"], record["port"]))
+				ip = record["ip"]
+				port = record["port"]
 			}
 
 			if result["SMBGhost"] != "" {
@@ -159,13 +168,29 @@ func (t *taskScanVul) doDone(item interface{}) (err error) {
 					return err
 				}
 				fmt.Println(fmt.Sprintf(`[+]发现SMBGhost漏洞 %s:%s`, record["ip"], record["port"]))
+				ip = record["ip"]
+				port = record["port"]
 			}
+
+			saveVul[fmt.Sprintf(`A%d`, indexVul)] = ip
+			saveVul[fmt.Sprintf(`B%d`, indexVul)], _ = strconv.Atoi(port)
+			saveVul[fmt.Sprintf(`C%d`, indexVul)] = "MS17-010"
+			indexVul++
 		case "网卡":
 			var nets []string
+			var netInfo, hostName interface{}
 			json.Unmarshal([]byte(result["content"]), &nets)
+			if len(nets) > 0 {
+				hostName = nets[0]
+				if len(nets) > 1 {
+					netInfo = strings.Join(nets[1:], ",")
+				}
+			}
+
 			for k, v := range nets {
 				nets[k] = fmt.Sprintf("\t-> %s\r\n", v)
 			}
+
 			fmt.Println(
 				fmt.Sprintf(
 					"[+]发现网卡 %s:%s\r\n%s",
@@ -174,6 +199,10 @@ func (t *taskScanVul) doDone(item interface{}) (err error) {
 					strings.Join(nets, ""),
 				),
 			)
+			saveNet[fmt.Sprintf(`A%d`, indexNet)] = result["ip"]
+			saveNet[fmt.Sprintf(`B%d`, indexNet)] = netInfo
+			saveNet[fmt.Sprintf(`C%d`, indexNet)] = hostName
+			indexNet++
 		case "NetBIOS":
 			fmt.Println(
 				fmt.Sprintf(
@@ -186,6 +215,13 @@ func (t *taskScanVul) doDone(item interface{}) (err error) {
 					result["is_dc"],
 				),
 			)
+			saveNetBios[fmt.Sprintf(`A%d`, indexNetBios)] = result["ip"]
+			saveNetBios[fmt.Sprintf(`B%d`, indexNetBios)], _ = strconv.Atoi(result["port"])
+			saveNetBios[fmt.Sprintf(`C%d`, indexNetBios)] = result["unique"]
+			saveNetBios[fmt.Sprintf(`D%d`, indexNetBios)] = result["group"]
+			saveNetBios[fmt.Sprintf(`E%d`, indexNetBios)] = result["os_version"]
+			saveNetBios[fmt.Sprintf(`F%d`, indexNetBios)] = result["is_dc"]
+			indexNetBios++
 		}
 	}
 
@@ -220,7 +256,10 @@ func DoTaskScanVul(req models.Params) {
 		),
 		"完成系统高危漏洞+网卡识别+域控探测",
 		func() {
-			//
+			// 保存数据
+			utils.SaveData(req.SaveFile, "网卡信息", saveNet)
+			utils.SaveData(req.SaveFile, "域控识别", saveNetBios)
+			utils.SaveData(req.SaveFile, "高危系统漏洞", saveVul)
 		},
 		req.WaitVul,
 	)

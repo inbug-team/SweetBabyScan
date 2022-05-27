@@ -12,7 +12,6 @@ func CheckSQL(hostType, ip, user, pwd string, port int) bool {
 
 	connectStr := ""
 	var err error
-
 	switch hostType {
 	case "mysql":
 		connectStr = fmt.Sprintf(
