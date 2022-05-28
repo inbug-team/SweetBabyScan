@@ -7,6 +7,7 @@ import (
 	"github.com/inbug-team/SweetBabyScan/utils"
 	"math"
 	"sync"
+	"time"
 )
 
 type taskScanPocNuclei struct {
@@ -33,37 +34,44 @@ func (t *taskScanPocNuclei) doIter(wg *sync.WaitGroup, worker chan bool, result 
 func (t *taskScanPocNuclei) doTask(wg *sync.WaitGroup, worker chan bool, result chan utils.CountResult, data ...interface{}) {
 	defer wg.Done()
 	item, poc := data[0].(models.ScanSite), data[1].(models.DataPocNuclei)
-	if item.Link != "" {
-		isVul, packetSend, packetRecv, err := plugin_scan_poc_nuclei.ScanPocNuclei(item.Link, &poc)
+	tmpResult := make(chan utils.CountResult, 1)
+
+	go func(_item models.ScanSite, _poc models.DataPocNuclei) {
+		isVul, packetSend, packetRecv, err := plugin_scan_poc_nuclei.ScanPocNuclei(_item.Link, &_poc)
 		if err == nil && isVul {
-			result <- utils.CountResult{
+			tmpResult <- utils.CountResult{
 				Count: 1,
 				Result: models.ScanPoc{
-					Url:         item.Link,
-					Ip:          item.Ip,
-					Port:        item.Port,
-					Title:       item.Title,
-					Keywords:    item.Keywords,
-					Description: item.Description,
-					StatusCode:  item.StatusCode,
+					Url:         _item.Link,
+					Ip:          _item.Ip,
+					Port:        _item.Port,
+					Title:       _item.Title,
+					Keywords:    _item.Keywords,
+					Description: _item.Description,
+					StatusCode:  _item.StatusCode,
 					PacketSend:  packetSend,
 					PacketRecv:  packetRecv,
-					PocName:     poc.PocName,
-					VulName:     poc.Template.Info.Name,
-					VulDesc:     poc.Template.Info.Description,
-					VulLevel:    poc.VulLevel,
-					PocProtocol: poc.PocProtocol,
-					PocCatalog:  poc.PocCatalog,
-					CmsName:     item.CmsName,
+					PocName:     _poc.PocName,
+					VulName:     _poc.Template.Info.Name,
+					VulDesc:     _poc.Template.Info.Description,
+					VulLevel:    _poc.VulLevel,
+					PocProtocol: _poc.PocProtocol,
+					PocCatalog:  _poc.PocCatalog,
+					CmsName:     _item.CmsName,
 				},
 			}
 		} else {
-			result <- utils.CountResult{
+			tmpResult <- utils.CountResult{
 				Count:  1,
 				Result: nil,
 			}
 		}
-	} else {
+	}(item, poc)
+
+	select {
+	case res := <-tmpResult:
+		result <- res
+	case <-time.After(time.Duration(t.params.TimeOutScanPocNuclei) * time.Second):
 		result <- utils.CountResult{
 			Count:  1,
 			Result: nil,
