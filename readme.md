@@ -1,12 +1,17 @@
 # SweetBabyScan
+
 轻量级内网资产探测漏洞扫描工具
 
 ## 简介
+
 甜心宝贝是一款支持弱口令爆破的内网资产探测漏洞扫描工具，集成了Xray与Nuclei的Poc
+
 ### 工具定位
+
 内网资产探测、通用漏洞扫描、弱口令爆破
 
 ### 工具截图
+
 工具根据系统自动下载对应版本的Chromium
 ![1](img/1.png)
 ![2](img/2.png)
@@ -17,29 +22,34 @@
 ![14](img/14.png)
 ![17](img/17.png)
 调高探测与扫描并发
+
 ```
 ./SbScan -h 192.168.0.0/16 -wsh 500 --wsp 500
 ```
+
 ![6](img/6.png)
 ![7](img/7.png)
 ![8](img/8.png)
 
 端口扫描可以写端口号、端口范围或者常用端口类型
+
 ```
 ./SbScan -h 192.168.188.0/24 -p 80,22,81-89
 ```
+
 ![9](img/9.png)
 ![10](img/10.png)
 
 列出weblogic漏洞对应的poc
+
 ```
 ./SbScan --lpn --fpn weblogic
 ```
+
 ![15](img/15.png)
 
 列出thinkphp漏洞对应的poc
 ![16](img/16.png)
-
 
 ### 一、编译
 
@@ -75,7 +85,6 @@ GOOS=linux GOARCH=386 go build -ldflags="-s -w" -trimpath -o SbScan
 - 自动扫描
 
 > ./SbScan
-
 
 - 根据指定IP段扫描
 
@@ -123,22 +132,43 @@ Flags:
    -wss, -workerScanSite int           爬虫并发 (default 16)
    -tss, -timeOutScanSite int          爬虫超时 (default 3)
    -ts, -timeOutScreen int             截图超时 (default 60)
-   -lpn, -listPocNuclei                是否列举Nuclei Poc
+   -lpn, -listPocNuclei                是否列举Poc Nuclei
+   -lpx, -ListPocXray                  是否列举Poc Xray
    -fpn, -filterPocName string         筛选POC名称，多个关键字英文逗号隔开
-   -fvl, -filterVulLevel string        筛选POC严重等级：critical[严重] > high[高危] > medium[中危] > low[低危] > info[信息]、unknown[未知]，多个关键字英文逗号隔开
+   -fvl, -filterVulLevel string        筛选POC严重等级：critical[严重] > high[高危] > medium[中危] > low[低危] > info[信息]、unknown[未知]、all[全部]，多个关键字英文逗号隔开
    -tspn, -timeOutScanPocNuclei int    PocNuclei扫描超时 (default 6)
    -wsPoc, -workerScanPoc int          Poc并发 (default 100)
+   -wsw, -workerScanWeak int           爆破并发 (default 20)
+   -gsw, -groupScanWeak int            爆破分组 (default 10)
 ```
 
 ### 四、更新日志
 
 ```text
 2022-05-20（v0.0.1）
-    [+]1.主机存活检测
-    [+]2.端口服务扫描
-    [+]3.网站指纹爬虫
+    [+]1.主机存活检测（PING｜ICMP）
+    [+]2.端口服务扫描（高精度探针指纹识别）
+    [+]3.网站指纹爬虫（站点截图、CMS识别）
+2022-05-28（v0.0.2）
+    [+]4.网卡识别
+    [+]5.域控识别
+    [+]6.MS17010漏洞探测
+    [+]7.SMBGhost漏洞探测
+    [+]8.POC Xray V2漏洞探测
+    [+]9.POC Nuclei V2漏洞探测
+    [+]10.弱口令爆破
+        * FTP爆破
+        * SSH爆破
+        * SMB爆破
+        * SNMP爆破
+        * Redis爆破
+        * MongoDB爆破
+        * MySQL爆破
+        * SQLServer爆破
+        * PostGreSQL爆破
+        * ElasticSearch爆破
+    [+]11.结果存储到Excel
 ```
-
 
 ### 五、参考项目
 

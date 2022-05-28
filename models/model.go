@@ -1,6 +1,7 @@
 package models
 
 import (
+	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_poc_xray/structs"
 	"github.com/projectdiscovery/nuclei/v2/pkg/templates"
 )
 
@@ -93,10 +94,12 @@ type Params struct {
 	IsUseAllProbes         bool                           // 使用全量探针
 	RuleProbe              string                         // 指纹规则
 	ListPocNuclei          bool                           // 列举PocNuclei
-	FilterPocName          string                         // 筛选PocNuclei
-	FilterVulLevel         string                         // 筛选PocNuclei
+	ListPocXray            bool                           // 列举PocXray
+	FilterPocName          string                         // 筛选Poc名称
+	FilterVulLevel         string                         // 筛选漏洞等级
 	Sites                  []ScanSite                     // 网站列表
-	Pocs                   []DataPocNuclei                // Poc列表
+	PocNuclei              []DataPocNuclei                // Poc列表
+	PocXray                []structs.Poc                  // Poc列表
 	WaitVul                []WaitScanVul                  // 待爬漏洞列表
 	TimeOutScanPocNuclei   int                            // PocNuclei扫描超时
 	WorkerScanPoc          int                            // Poc并发

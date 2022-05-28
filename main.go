@@ -6,9 +6,11 @@ import (
 	"github.com/common-nighthawk/go-figure"
 	"github.com/inbug-team/SweetBabyScan/config"
 	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_poc_nuclei"
+	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_poc_xray/load"
 	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_weak"
 	"github.com/inbug-team/SweetBabyScan/core/tasks/task_scan_host"
 	"github.com/inbug-team/SweetBabyScan/core/tasks/task_scan_poc_nuclei"
+	"github.com/inbug-team/SweetBabyScan/core/tasks/task_scan_poc_xray"
 	"github.com/inbug-team/SweetBabyScan/core/tasks/task_scan_port"
 	"github.com/inbug-team/SweetBabyScan/core/tasks/task_scan_site"
 	"github.com/inbug-team/SweetBabyScan/core/tasks/task_scan_vul"
@@ -31,7 +33,7 @@ func init() {
 }
 
 // 过滤函数
-func fnFilter(pocName, vulLevel string, params models.Params) bool {
+func fnFilterNuclei(pocName, vulLevel string, params models.Params) bool {
 	statusFPN, statusFVL := false, false
 	// 筛选漏洞名
 	for _, s1 := range strings.Split(strings.ToLower(params.FilterPocName), ",") {
@@ -48,15 +50,38 @@ func fnFilter(pocName, vulLevel string, params models.Params) bool {
 	return statusFPN && statusFVL
 }
 
+// 过滤函数
+func fnFilterXray(pocName string, params models.Params) bool {
+	statusFPN := false
+	// 筛选漏洞名
+	for _, s1 := range strings.Split(strings.ToLower(params.FilterPocName), ",") {
+		statusFPN = statusFPN || strings.Contains(pocName, s1)
+	}
+	return statusFPN
+}
+
 // 查询 poc nuclei
-func findPocs(p models.Params) {
+func findPocsNuclei(p models.Params) {
 	fmt.Println("Finding......，Please be patient !")
 	pocNuclei := plugin_scan_poc_nuclei.ParsePocNucleiFiles(config.DirPocNuclei)
 	rows := plugin_scan_poc_nuclei.ParsePocNucleiToTable(pocNuclei)
-	rows, total := plugin_scan_poc_nuclei.FilterPocNucleiTable(rows, fnFilter, p)
+	rows, total := plugin_scan_poc_nuclei.FilterPocNucleiTable(rows, fnFilterNuclei, p)
 	utils.ShowTable(
 		fmt.Sprintf("Collection Of Poc Nuclei <%d rows>", total),
 		table.Row{"ID", "Poc", "Catalog", "Protocol", "Level"},
+		rows,
+	)
+}
+
+// 查询 poc xray
+func findPocsXray(p models.Params) {
+	fmt.Println("Finding......，Please be patient !")
+	pocXray := load.ParsePocXrayFiles(config.DirPocXray)
+	rows := load.ParsePocXrayToTable(pocXray)
+	rows, total := load.FilterPocXrayTable(rows, fnFilterXray, p)
+	utils.ShowTable(
+		fmt.Sprintf("Collection Of Poc Xray <%d rows>", total),
+		table.Row{"ID", "Poc", "Transport"},
 		rows,
 	)
 }
@@ -101,13 +126,18 @@ func doTask(p models.Params) {
 	}
 
 	pocNuclei := plugin_scan_poc_nuclei.ParsePocNucleiFiles(config.DirPocNuclei)
-	p.Pocs, _ = plugin_scan_poc_nuclei.FilterPocNucleiData(pocNuclei, fnFilter, p)
+	p.PocNuclei, _ = plugin_scan_poc_nuclei.FilterPocNucleiData(pocNuclei, fnFilterNuclei, p)
+
+	pocXray := load.ParsePocXrayFiles(config.DirPocXray)
+	p.PocXray, _ = load.FilterPocXrayData(pocXray, fnFilterXray, p)
+
 	p.UserPass = plugin_scan_weak.ParseUserPass(config.Passwords)
 
 	p.IPs = task_scan_host.DoTaskScanHost(p)
 	p.Urls, p.WaitVul, p.WaitWeak = task_scan_port.DoTaskScanPort(p)
 	p.Sites = task_scan_site.DoTaskScanSite(p)
-	task_scan_poc_nuclei.DoTaskScanPocNuclei(p)
+	index := task_scan_poc_nuclei.DoTaskScanPocNuclei(p)
+	task_scan_poc_xray.DoTaskScanPocXray(p, index)
 	task_scan_vul.DoTaskScanVul(p)
 	task_scan_weak.DoTaskScanWeak(p)
 }
@@ -157,7 +187,8 @@ func main() {
 	flagSet.IntVarP(&p.WorkerScanSite, "workerScanSite", "wss", runtime.NumCPU()*2, "爬虫并发")
 	flagSet.IntVarP(&p.TimeOutScanSite, "timeOutScanSite", "tss", 3, "爬虫超时")
 	flagSet.IntVarP(&p.TimeOutScreen, "timeOutScreen", "ts", 60, "截图超时")
-	flagSet.BoolVarP(&p.ListPocNuclei, "listPocNuclei", "lpn", false, "是否列举Nuclei Poc")
+	flagSet.BoolVarP(&p.ListPocNuclei, "listPocNuclei", "lpn", false, "是否列举Poc Nuclei")
+	flagSet.BoolVarP(&p.ListPocXray, "ListPocXray", "lpx", false, "是否列举Poc Xray")
 	flagSet.StringVarP(&p.FilterPocName, "filterPocName", "fpn", "", "筛选POC名称，多个关键字英文逗号隔开")
 	flagSet.StringVarP(&p.FilterVulLevel, "filterVulLevel", "fvl", "", "筛选POC严重等级：critical[严重] > high[高危] > medium[中危] > low[低危] > info[信息]、unknown[未知]、all[全部]，多个关键字英文逗号隔开")
 	flagSet.IntVarP(&p.TimeOutScanPocNuclei, "timeOutScanPocNuclei", "tspn", 6, "PocNuclei扫描超时")
@@ -170,7 +201,9 @@ func main() {
 	plugin_scan_poc_nuclei.InitPocNucleiExecOpts(p.TimeOutScanPocNuclei)
 
 	if p.ListPocNuclei {
-		findPocs(p)
+		findPocsNuclei(p)
+	} else if p.ListPocXray {
+		findPocsXray(p)
 	} else {
 		doTask(p)
 	}

@@ -1,15 +1,18 @@
-package task_scan_poc_nuclei
+package task_scan_poc_xray
 
 import (
 	"fmt"
-	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_poc_nuclei"
+	"github.com/inbug-team/SweetBabyScan/config"
+	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_poc_xray"
+	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_poc_xray/structs"
 	"github.com/inbug-team/SweetBabyScan/models"
 	"github.com/inbug-team/SweetBabyScan/utils"
 	"math"
+	"net/http"
 	"sync"
 )
 
-type taskScanPocNuclei struct {
+type taskScanPocXray struct {
 	params models.Params
 }
 
@@ -18,10 +21,10 @@ var index = 2
 var savePocs = map[string]interface{}{}
 
 // 1.迭代方法
-func (t *taskScanPocNuclei) doIter(wg *sync.WaitGroup, worker chan bool, result chan utils.CountResult, task utils.Task, data ...interface{}) {
+func (t *taskScanPocXray) doIter(wg *sync.WaitGroup, worker chan bool, result chan utils.CountResult, task utils.Task, data ...interface{}) {
 	items, pocArr := data[0], data[1]
 	for _, item := range items.([]models.ScanSite) {
-		for _, poc := range pocArr.([]models.DataPocNuclei) {
+		for _, poc := range pocArr.([]structs.Poc) {
 			wg.Add(1)
 			worker <- true
 			go task(wg, worker, result, item, poc)
@@ -30,11 +33,14 @@ func (t *taskScanPocNuclei) doIter(wg *sync.WaitGroup, worker chan bool, result 
 }
 
 // 2.任务方法
-func (t *taskScanPocNuclei) doTask(wg *sync.WaitGroup, worker chan bool, result chan utils.CountResult, data ...interface{}) {
+func (t *taskScanPocXray) doTask(wg *sync.WaitGroup, worker chan bool, result chan utils.CountResult, data ...interface{}) {
 	defer wg.Done()
-	item, poc := data[0].(models.ScanSite), data[1].(models.DataPocNuclei)
+	item, poc := data[0].(models.ScanSite), data[1].(structs.Poc)
 	if item.Link != "" {
-		isVul, packetSend, packetRecv, err := plugin_scan_poc_nuclei.ScanPocNuclei(item.Link, &poc)
+		oReq, _ := http.NewRequest("GET", item.Link, nil)
+		oReq.Header.Set("User-agent", config.GetUserAgent())
+
+		isVul, err := plugin_scan_poc_xray.ScanPocXray(oReq, item.Link, &poc)
 		if err == nil && isVul {
 			result <- utils.CountResult{
 				Count: 1,
@@ -46,14 +52,14 @@ func (t *taskScanPocNuclei) doTask(wg *sync.WaitGroup, worker chan bool, result 
 					Keywords:    item.Keywords,
 					Description: item.Description,
 					StatusCode:  item.StatusCode,
-					PacketSend:  packetSend,
-					PacketRecv:  packetRecv,
-					PocName:     poc.PocName,
-					VulName:     poc.Template.Info.Name,
-					VulDesc:     poc.Template.Info.Description,
-					VulLevel:    poc.VulLevel,
-					PocProtocol: poc.PocProtocol,
-					PocCatalog:  poc.PocCatalog,
+					PacketSend:  "",
+					PacketRecv:  "",
+					PocName:     poc.Name,
+					VulName:     "",
+					VulDesc:     poc.Detail.Description,
+					VulLevel:    "",
+					PocProtocol: poc.Transport,
+					PocCatalog:  "",
 					CmsName:     item.CmsName,
 				},
 			}
@@ -73,14 +79,14 @@ func (t *taskScanPocNuclei) doTask(wg *sync.WaitGroup, worker chan bool, result 
 }
 
 // 3.保存结果
-func (t *taskScanPocNuclei) doDone(item interface{}) error {
+func (t *taskScanPocXray) doDone(item interface{}) error {
 	result := item.(models.ScanPoc)
 	pocData = append(pocData, result)
 
 	savePocs[fmt.Sprintf("A%d", index)] = result.Ip
-	savePocs[fmt.Sprintf("B%d", index)] = "nuclei"
+	savePocs[fmt.Sprintf("B%d", index)] = "xray"
 	savePocs[fmt.Sprintf("C%d", index)] = result.Url
-	savePocs[fmt.Sprintf("D%d", index)] = result.VulName
+	savePocs[fmt.Sprintf("D%d", index)] = result.PocName
 	savePocs[fmt.Sprintf("E%d", index)] = result.VulLevel
 	savePocs[fmt.Sprintf("F%d", index)] = result.VulDesc
 	savePocs[fmt.Sprintf("G%d", index)] = result.PocName
@@ -89,12 +95,10 @@ func (t *taskScanPocNuclei) doDone(item interface{}) error {
 	if t.params.IsLog {
 		fmt.Println(
 			fmt.Sprintf(
-				"[+][PocNuclei]发现web漏洞 %s <[Title:%s] [Name:%s] [Level:%s] [CataLog:%s]>",
+				"[+][PocXray]发现web漏洞 %s <[Title:%s] [Name:%s]",
 				result.Url,
 				result.Title,
 				result.PocName,
-				result.VulLevel,
-				result.PocCatalog,
 			),
 		)
 	}
@@ -103,16 +107,17 @@ func (t *taskScanPocNuclei) doDone(item interface{}) error {
 }
 
 // 4.记录数量
-func (t *taskScanPocNuclei) doAfter(data uint) {
+func (t *taskScanPocXray) doAfter(data uint) {
 
 }
 
 // 执行Poc漏洞扫描
-func DoTaskScanPocNuclei(req models.Params) int {
-	task := taskScanPocNuclei{params: req}
+func DoTaskScanPocXray(req models.Params, i int) {
+	index = i
+	task := taskScanPocXray{params: req}
 
-	totalTask := uint(len(req.PocNuclei)) * uint(len(req.Sites))
-	totalTime := uint(math.Ceil(float64(totalTask)/float64(req.WorkerScanPoc)) * float64(req.TimeOutScanPocNuclei))
+	totalTask := uint(len(req.PocXray)) * uint(len(req.Sites))
+	totalTime := uint(math.Ceil(float64(totalTask)/float64(req.WorkerScanPoc)) * float64(10))
 
 	utils.MultiTask(
 		totalTask,
@@ -124,20 +129,17 @@ func DoTaskScanPocNuclei(req models.Params) int {
 		task.doDone,
 		task.doAfter,
 		fmt.Sprintf(
-			"开始PocNuclei漏洞检测\r\n\r\n> Poc并发：%d\r\n> 筛选Poc名称：%s\r\n> 筛选Poc等级：%s\r\n> Poc扫描超时：%d\r\n",
+			"开始PocXray漏洞检测\r\n\r\n> Poc并发：%d\r\n> 筛选Poc名称：%s\r\n> Poc扫描超时：%d\r\n",
 			req.WorkerScanPoc,
 			req.FilterPocName,
-			req.FilterVulLevel,
-			req.TimeOutScanPocNuclei,
+			10,
 		),
-		"完成PocNuclei漏洞检测",
+		"完成PocXray漏洞检测",
 		func() {
 			// 保存数据-漏洞信息
 			utils.SaveData(req.SaveFile, "漏洞信息", savePocs)
 		},
 		req.Sites,
-		req.PocNuclei,
+		req.PocXray,
 	)
-
-	return index
 }
