@@ -6,9 +6,7 @@ import (
 	_ "github.com/ClickHouse/clickhouse-go"
 	_ "github.com/denisenkom/go-mssqldb"
 	_ "github.com/go-sql-driver/mysql"
-	_ "github.com/godror/godror"
 	_ "github.com/lib/pq"
-	"os"
 	"time"
 )
 
@@ -24,8 +22,6 @@ func CheckRDB(hostType, ip, user, pwd string, port uint) bool {
 		flag = checkMSSQL(ip, user, pwd, port)
 	case "clickhouse":
 		flag = checkClickHouse(ip, user, pwd, port)
-	case "oracle":
-		flag = checkOracle(ip, user, pwd, port)
 	}
 
 	return flag
@@ -123,31 +119,6 @@ func checkClickHouse(ip, user, pwd string, port uint) bool {
 		pwd,
 	)
 	db, err := sql.Open("clickhouse", connStr)
-	if err == nil {
-		defer func() {
-			db.Close()
-		}()
-		err = db.Ping()
-		if err == nil {
-			flag = true
-		}
-	}
-
-	return flag
-}
-
-// 检测oracle
-func checkOracle(ip, user, pwd string, port uint) bool {
-	flag := false
-	connStr := fmt.Sprintf(
-		`user="%s" password="%s" connectString="%s:%d/orclpdb1?connect_timeout=6" libDir="%s"`,
-		user,
-		pwd,
-		ip,
-		port,
-		os.Getenv("InstantClient"),
-	)
-	db, err := sql.Open("godror", connStr)
 	if err == nil {
 		defer func() {
 			db.Close()
