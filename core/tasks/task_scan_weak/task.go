@@ -41,10 +41,6 @@ func taskScanWeak(req models.Params, item models.WaitScanWeak, key string) {
 	var ingTask uint = 0
 
 	tmpl := `{{string . "alive" | yellow}} {{counters . | red}} {{ bar . "[" "=" (cycle . "↖" "↗" "↘" "↙" ) "." "]"}} {{percent . | green}} {{speed . | blue}}`
-	if req.IsLog {
-		tmpl += `
-`
-	}
 	bar := pb.ProgressBarTemplate(tmpl).Start(int(totalTask))
 	bar.Set("alive", fmt.Sprintf("%s:%s<%s>[+](0)", item.Ip, item.Port, item.Service))
 
@@ -63,50 +59,66 @@ func taskScanWeak(req models.Params, item models.WaitScanWeak, key string) {
 				worker <- true
 				go func(_wg *sync.WaitGroup, _user, _pass string, _item models.WaitScanWeak) {
 					defer _wg.Done()
-					status := false
+
 					port, _ := strconv.Atoi(_item.Port)
 					_port := uint(port)
-					if key == "redis" {
-						status = plugin_scan_weak.CheckRedis(_item.Ip, _user, _pass, _port)
-					} else if key == "ssh" {
-						status = plugin_scan_weak.CheckSSH(_item.Ip, _user, _pass, _port)
-					} else if key == "mongodb" {
-						status = plugin_scan_weak.CheckMongoDB(_item.Ip, _user, _pass, _port)
-					} else if key == "mysql" {
-						status = plugin_scan_weak.CheckRDB("mysql", _item.Ip, _user, _pass, _port)
-					} else if key == "postgres" {
-						status = plugin_scan_weak.CheckRDB("postgres", _item.Ip, _user, _pass, _port)
-					} else if key == "sqlserver" {
-						status = plugin_scan_weak.CheckRDB("mssql", _item.Ip, _user, _pass, _port)
-					} else if key == "ftp" {
-						status = plugin_scan_weak.CheckFTP(_item.Ip, _user, _pass, _port)
-					} else if key == "elasticsearch" {
-						status = plugin_scan_weak.CheckElasticSearch(_item.Ip, _user, _pass, _port)
-					} else if key == "smb" {
-						status = plugin_scan_weak.CheckSMB(_item.Ip, _user, _pass, _port)
-					} else if key == "snmp" {
-						status = plugin_scan_weak.CheckSNMP(_item.Ip, _pass, _port)
-					}
+					tmpResult := make(chan utils.CountResult, 1)
 
-					if status {
-						workerResult <- utils.CountResult{
-							Count: 1,
-							Result: models.ScanWeak{
-								Ip:       _item.Ip,
-								Port:     _item.Port,
-								Service:  _item.Service,
-								Probe:    _item.Probe,
-								Protocol: _item.Protocol,
-								User:     _user,
-								Pass:     _pass,
-							},
+					go func(_key, __user, __pass string, __item models.WaitScanWeak, __port uint) {
+						status := false
+						if _key == "redis" {
+							status = plugin_scan_weak.CheckRedis(__item.Ip, __user, __pass, __port)
+						} else if _key == "ssh" {
+							status = plugin_scan_weak.CheckSSH(__item.Ip, __user, __pass, __port)
+						} else if _key == "mongodb" {
+							status = plugin_scan_weak.CheckMongoDB(__item.Ip, __user, __pass, __port)
+						} else if _key == "mysql" {
+							status = plugin_scan_weak.CheckRDB("mysql", __item.Ip, __user, __pass, __port)
+						} else if _key == "postgres" {
+							status = plugin_scan_weak.CheckRDB("postgres", __item.Ip, __user, __pass, __port)
+						} else if _key == "sqlserver" {
+							status = plugin_scan_weak.CheckRDB("mssql", __item.Ip, __user, __pass, __port)
+						} else if _key == "ftp" {
+							status = plugin_scan_weak.CheckFTP(__item.Ip, __user, __pass, __port)
+						} else if _key == "elasticsearch" {
+							status = plugin_scan_weak.CheckElasticSearch(__item.Ip, __user, __pass, __port)
+						} else if _key == "smb" {
+							status = plugin_scan_weak.CheckSMB(__item.Ip, __user, __pass, __port)
+						} else if _key == "snmp" {
+							status = plugin_scan_weak.CheckSNMP(__item.Ip, __pass, __port)
 						}
-					} else {
+
+						if status {
+							tmpResult <- utils.CountResult{
+								Count: 1,
+								Result: models.ScanWeak{
+									Ip:       __item.Ip,
+									Port:     __item.Port,
+									Service:  __item.Service,
+									Probe:    __item.Probe,
+									Protocol: __item.Protocol,
+									User:     __user,
+									Pass:     __pass,
+								},
+							}
+						} else {
+							tmpResult <- utils.CountResult{
+								Count:  1,
+								Result: nil,
+							}
+						}
+					}(key, _user, _pass, _item, _port)
+
+					select {
+					case res := <-tmpResult:
+						workerResult <- res
+					case <-time.After(time.Duration(req.TimeOutScanWeak) * time.Second):
 						workerResult <- utils.CountResult{
 							Count:  1,
 							Result: nil,
 						}
 					}
+
 					<-worker
 
 				}(&wg, user, strings.ReplaceAll(pass, "%user%", user), item)

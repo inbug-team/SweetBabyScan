@@ -49,11 +49,8 @@ func MultiTask(
 	fmt.Println("****************<-START->****************")
 	fmt.Println(msgStart)
 
-	tmpl := `{{string . "alive" | yellow}} {{counters . | red}} {{ bar . "[" "=" (cycle . "↖" "↗" "↘" "↙" ) "." "]"}} {{percent . | green}} {{speed . | blue}} {{string . "leftTime" | red}}`
-	if isLog {
-		tmpl += `
-`
-	}
+	tmpl := `{{string . "alive" | yellow}} {{counters . | red}} {{ bar . "[" "=" (cycle . "↖" "↗" "↘" "↙" ) "." "]"}} {{percent . | green}} {{speed . | blue}} {{string . "leftTime" | red}} `
+
 	bar := pb.ProgressBarTemplate(tmpl).Start(int(totalTask))
 	start := time.Now()
 	if totalTask <= workerNumber {

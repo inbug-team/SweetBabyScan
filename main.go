@@ -195,6 +195,7 @@ func main() {
 	flagSet.IntVarP(&p.WorkerScanPoc, "workerScanPoc", "wsPoc", 100, "Poc并发")
 	flagSet.IntVarP(&p.WorkerScanWeak, "workerScanWeak", "wsw", 20, "爆破并发")
 	flagSet.IntVarP(&p.GroupScanWeak, "groupScanWeak", "gsw", 10, "爆破分组")
+	flagSet.IntVarP(&p.TimeOutScanWeak, "timeOutScanWeak", "tsw", 6, "爆破超时")
 
 	flagSet.Parse()
 
