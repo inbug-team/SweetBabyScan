@@ -150,7 +150,7 @@ func main() {
 	myFigure := figure.NewColorFigure("SBScan", "doom", "red", true)
 	myFigure.Print()
 	fmt.Println("全称：SweetBaby，甜心宝贝扫描器")
-	fmt.Println("Version <0.0.2> Made By InBug")
+	fmt.Println("Version <0.0.3> Made By InBug")
 
 	soft, hard, err := ulimit.GetRlimit()
 	if err != nil {
