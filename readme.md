@@ -140,6 +140,7 @@ Flags:
    -wsPoc, -workerScanPoc int          Poc并发 (default 100)
    -wsw, -workerScanWeak int           爆破并发 (default 20)
    -gsw, -groupScanWeak int            爆破分组 (default 10)
+   -tsw, -timeOutScanWeak int          爆破超时 (default 6)
 ```
 
 ### 四、更新日志
