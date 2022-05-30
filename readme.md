@@ -59,6 +59,12 @@
 git clone https://github.com/inbug-team/SweetBabyScan.git --recursive
 ```
 
+- 初始化module
+```shell
+go mod tidy
+go mod vendor
+```
+
 - Windows
 
 ```shell
