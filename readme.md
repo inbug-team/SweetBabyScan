@@ -193,7 +193,7 @@ https://www.inbug.org
 如有BUG优先提交issues，如果有更好的功能建议，欢迎添加微信。
 https://github.com/inbug-team/SweetBabyScan/issues
 
-![-Wechat](img/Wechat.png)
+![-Wechat](img/WeChat.png)
 
 
 同时也可通过公众号联系：
