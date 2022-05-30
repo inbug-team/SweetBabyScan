@@ -190,7 +190,7 @@ Flags:
 **官网**
 https://www.inbug.org
 
-如有BUG优先提交issues。
+如有BUG优先提交issues:
 https://github.com/inbug-team/SweetBabyScan/issues
 
 如有更好的功能建议，欢迎添加微信。
