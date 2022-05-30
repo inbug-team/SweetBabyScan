@@ -147,11 +147,13 @@ func FilterPocNucleiData(arr []models.DataPocNuclei, fn func(pocName, vulLevel s
 
 // 加载POC
 func ParsePocNucleiData(data []byte) (tpl *templates.Template, err error) {
-	file, err := ioutil.TempFile("./static", `tmp.*.yaml`)
+	rootPath, _ := os.Getwd()
+	staticPath := filepath.Join(rootPath, "static")
+	file, err := ioutil.TempFile(staticPath, `tmp.*.yaml`)
 	if err != nil {
 		return
 	}
-
+	fmt.Println(file.Name())
 	defer os.Remove(file.Name())
 
 	if _, err = file.Write(data); err != nil {
