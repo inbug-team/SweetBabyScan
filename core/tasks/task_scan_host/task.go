@@ -44,14 +44,11 @@ func (t *taskScanHost) doTask(wg *sync.WaitGroup, worker chan bool, result chan 
 	item := data[0].(string)
 	status := false
 	methodAlive := t.params.MethodScanHost
-	iFace := t.params.IFace
 	mac := ""
 	if methodAlive == "ICMP" {
 		status = plugin_scan_host.ScanHostByICMP(item, time.Duration(t.params.TimeOutScanHost)*time.Second)
 	} else if methodAlive == "PING" {
 		status = plugin_scan_host.ScanHostByPing(item)
-	} else if methodAlive == "ARP" {
-		status, mac = plugin_scan_host.ScanHostByARP(item, iFace, time.Duration(t.params.TimeOutScanHost)*time.Second)
 	}
 	if status {
 		result <- utils.CountResult{
@@ -111,11 +108,10 @@ func DoTaskScanHost(req models.Params) []string {
 		task.doDone,
 		task.doAfter,
 		fmt.Sprintf(
-			"开始主机存活检测\r\n\r\n> 存活并发：%d\r\n> 存活超时：%d\r\n> 检测方式：%s\r\n> 出口网卡：%s\r\n> 检测网段：%s\r\n> 排除网段：%s\r\n",
+			"开始主机存活检测\r\n\r\n> 存活并发：%d\r\n> 存活超时：%d\r\n> 检测方式：%s\r\n> 检测网段：%s\r\n> 排除网段：%s\r\n",
 			req.WorkerScanHost,
 			req.TimeOutScanHost,
 			req.MethodScanHost,
-			req.IFace,
 			req.Host,
 			req.HostBlack,
 		),

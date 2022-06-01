@@ -1,7 +1,6 @@
 package models
 
 import (
-	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_poc_xray/structs"
 	"github.com/projectdiscovery/nuclei/v2/pkg/templates"
 )
 
@@ -11,13 +10,31 @@ const (
 	H = 60 * 60
 )
 
-// Poc脚本
-type PocScript struct {
-	PocName     string
-	PocId       uint
-	PocContent  string
-	PocProtocol string
-	VulLevel    string
+// Poc脚本-Xray
+type DataPocXray struct {
+	Name   string              `yaml:"name"`
+	Set    map[string]string   `yaml:"set"`
+	Sets   map[string][]string `yaml:"sets"`
+	Rules  []Rules             `yaml:"rules"`
+	Groups map[string][]Rules  `yaml:"groups"`
+	Detail Detail              `yaml:"detail"`
+}
+
+type Rules struct {
+	Method          string            `yaml:"method"`
+	Path            string            `yaml:"path"`
+	Headers         map[string]string `yaml:"headers"`
+	Body            string            `yaml:"body"`
+	Search          string            `yaml:"search"`
+	FollowRedirects bool              `yaml:"follow_redirects"`
+	Expression      string            `yaml:"expression"`
+}
+
+type Detail struct {
+	Author      string   `yaml:"author"`
+	Links       []string `yaml:"links"`
+	Description string   `yaml:"description"`
+	Version     string   `yaml:"version"`
 }
 
 // Poc脚本-Nuclei
@@ -73,7 +90,6 @@ type Params struct {
 	Protocol               string                         // 协议
 	HostBlack              string                         // 排除网段
 	MethodScanHost         string                         // 验存方式：PING、ICMP、ARP
-	IFace                  string                         // 出口网卡
 	WorkerScanHost         int                            // 存活并发
 	WorkerScanPort         int                            // 存活并发
 	WorkerScanSite         int                            // 爬虫并发
@@ -99,7 +115,7 @@ type Params struct {
 	FilterVulLevel         string                         // 筛选漏洞等级
 	Sites                  []ScanSite                     // 网站列表
 	PocNuclei              []DataPocNuclei                // Poc列表
-	PocXray                []structs.Poc                  // Poc列表
+	PocXray                []DataPocXray                  // Poc列表
 	WaitVul                []WaitScanVul                  // 待爬漏洞列表
 	TimeOutScanPocNuclei   int                            // PocNuclei扫描超时
 	WorkerScanPoc          int                            // Poc并发

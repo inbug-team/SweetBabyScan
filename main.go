@@ -27,9 +27,11 @@ import (
 	"time"
 )
 
+var isScreen = false
+
 func init() {
 	os.Mkdir("./static", 0777)
-	initializes.InitAll()
+	isScreen = initializes.InitAll()
 }
 
 // 过滤函数
@@ -81,7 +83,7 @@ func findPocsXray(p models.Params) {
 	rows, total := load.FilterPocXrayTable(rows, fnFilterXray, p)
 	utils.ShowTable(
 		fmt.Sprintf("Collection Of Poc Xray <%d rows>", total),
-		table.Row{"ID", "Poc", "Transport"},
+		table.Row{"ID", "Poc", "Description"},
 		rows,
 	)
 }
@@ -150,7 +152,7 @@ func main() {
 	myFigure := figure.NewColorFigure("SBScan", "doom", "red", true)
 	myFigure.Print()
 	fmt.Println("全称：SweetBaby，甜心宝贝扫描器")
-	fmt.Println("Version <0.0.3> Made By InBug")
+	fmt.Println("Version <0.0.4> Made By InBug")
 
 	soft, hard, err := ulimit.GetRlimit()
 	if err != nil {
@@ -158,9 +160,11 @@ func main() {
 	}
 
 	fmt.Println(fmt.Sprintf("ulimit soft: %d ｜ulimit hard: %d", soft, hard))
-
-	path := "./static/ip.png"
-	isScreen, _ := utils.PathExists(path)
+	if isScreen {
+		fmt.Println("internet reachable")
+	} else {
+		fmt.Println("internet unreachable")
+	}
 
 	p := models.Params{}
 
@@ -174,7 +178,6 @@ func main() {
 	flagSet.StringVarP(&p.Protocol, "protocol", "pt", "tcp+udp", "端口范围：tcp、udp、tcp+udp")
 	flagSet.StringVarP(&p.HostBlack, "hostBlack", "hb", "", "排除网段")
 	flagSet.StringVarP(&p.MethodScanHost, "methodScanHost", "msh", "PING", "验存方式：PING、ICMP")
-	flagSet.StringVarP(&p.IFace, "iFace", "if", "", "出口网卡")
 	flagSet.IntVarP(&p.WorkerScanHost, "workerScanHost", "wsh", 250, "存活并发")
 	flagSet.IntVarP(&p.TimeOutScanHost, "timeOutScanHost", "tsh", 3, "存活超时")
 	flagSet.IntVarP(&p.Rarity, "rarity", "r", 10, "优先级")
@@ -193,7 +196,7 @@ func main() {
 	flagSet.StringVarP(&p.FilterVulLevel, "filterVulLevel", "fvl", "", "筛选POC严重等级：critical[严重] > high[高危] > medium[中危] > low[低危] > info[信息]、unknown[未知]、all[全部]，多个关键字英文逗号隔开")
 	flagSet.IntVarP(&p.TimeOutScanPocNuclei, "timeOutScanPocNuclei", "tspn", 6, "PocNuclei扫描超时")
 	flagSet.IntVarP(&p.WorkerScanPoc, "workerScanPoc", "wsPoc", 100, "Poc并发")
-	flagSet.IntVarP(&p.WorkerScanWeak, "workerScanWeak", "wsw", 20, "爆破并发")
+	flagSet.IntVarP(&p.WorkerScanWeak, "workerScanWeak", "wsw", 6, "爆破并发")
 	flagSet.IntVarP(&p.GroupScanWeak, "groupScanWeak", "gsw", 10, "爆破分组")
 	flagSet.IntVarP(&p.TimeOutScanWeak, "timeOutScanWeak", "tsw", 6, "爆破超时")
 

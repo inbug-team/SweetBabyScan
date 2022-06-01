@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/inbug-team/SweetBabyScan/config"
 	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_poc_xray"
-	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_poc_xray/structs"
+	//"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_poc_xray/structs"
 	"github.com/inbug-team/SweetBabyScan/models"
 	"github.com/inbug-team/SweetBabyScan/utils"
 	"math"
@@ -24,7 +24,7 @@ var savePocs = map[string]interface{}{}
 func (t *taskScanPocXray) doIter(wg *sync.WaitGroup, worker chan bool, result chan utils.CountResult, task utils.Task, data ...interface{}) {
 	items, pocArr := data[0], data[1]
 	for _, item := range items.([]models.ScanSite) {
-		for _, poc := range pocArr.([]structs.Poc) {
+		for _, poc := range pocArr.([]models.DataPocXray) {
 			wg.Add(1)
 			worker <- true
 			go task(wg, worker, result, item, poc)
@@ -35,12 +35,12 @@ func (t *taskScanPocXray) doIter(wg *sync.WaitGroup, worker chan bool, result ch
 // 2.任务方法
 func (t *taskScanPocXray) doTask(wg *sync.WaitGroup, worker chan bool, result chan utils.CountResult, data ...interface{}) {
 	defer wg.Done()
-	item, poc := data[0].(models.ScanSite), data[1].(structs.Poc)
+	item, poc := data[0].(models.ScanSite), data[1].(models.DataPocXray)
 	if item.Link != "" {
 		oReq, _ := http.NewRequest("GET", item.Link, nil)
 		oReq.Header.Set("User-agent", config.GetUserAgent())
 
-		isVul, err := plugin_scan_poc_xray.ScanPocXray(oReq, item.Link, &poc)
+		isVul, err, _ := plugin_scan_poc_xray.ScanPocXray(oReq, &poc)
 		if err == nil && isVul {
 			result <- utils.CountResult{
 				Count: 1,
@@ -58,7 +58,7 @@ func (t *taskScanPocXray) doTask(wg *sync.WaitGroup, worker chan bool, result ch
 					VulName:     "",
 					VulDesc:     poc.Detail.Description,
 					VulLevel:    "",
-					PocProtocol: poc.Transport,
+					PocProtocol: "",
 					PocCatalog:  "",
 					CmsName:     item.CmsName,
 				},
