@@ -17,15 +17,10 @@ type taskScanHost struct {
 	params models.Params
 }
 
-type IpRangeStruct struct {
-	Key   string
-	Value int
-}
-
 var ip []string
 
 var (
-	IpRange = map[string]int{}
+	ipRange = map[string]int{}
 )
 
 // 1.迭代方法
@@ -72,10 +67,10 @@ func (t *taskScanHost) doTask(wg *sync.WaitGroup, worker chan bool, result chan 
 // 3.保存结果
 func (t *taskScanHost) doDone(item interface{}) error {
 	result := item.(models.ScanHost)
-	if _, ok := IpRange[result.IpRange]; ok {
-		IpRange[result.IpRange] += 1
+	if _, ok := ipRange[result.IpRange]; ok {
+		ipRange[result.IpRange] += 1
 	} else {
-		IpRange[result.IpRange] = 1
+		ipRange[result.IpRange] = 1
 	}
 	ip = append(ip, result.Ip)
 
@@ -118,10 +113,10 @@ func DoTaskScanHost(req models.Params) []string {
 		//"主机存活检测中",
 		"完成主机存活检测",
 		func() {
-			var listIpRange []IpRangeStruct
+			var listIpRange []models.IpRangeStruct
 			total := 0
-			for k, v := range IpRange {
-				listIpRange = append(listIpRange, IpRangeStruct{Key: k, Value: v})
+			for k, v := range ipRange {
+				listIpRange = append(listIpRange, models.IpRangeStruct{Key: k, Value: v})
 				total += v
 			}
 			sort.Slice(listIpRange, func(i, j int) bool {

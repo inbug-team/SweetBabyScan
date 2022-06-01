@@ -125,7 +125,6 @@ Flags:
    -pt, -protocol string               端口范围：tcp、udp、tcp+udp (default "tcp+udp")
    -hb, -hostBlack string              排除网段
    -msh, -methodScanHost string        验存方式：PING、ICMP (default "PING")
-   -if, -iFace string                  出口网卡
    -wsh, -workerScanHost int           存活并发 (default 250)
    -tsh, -timeOutScanHost int          存活超时 (default 3)
    -r, -rarity int                     优先级 (default 10)
@@ -144,14 +143,23 @@ Flags:
    -fvl, -filterVulLevel string        筛选POC严重等级：critical[严重] > high[高危] > medium[中危] > low[低危] > info[信息]、unknown[未知]、all[全部]，多个关键字英文逗号隔开
    -tspn, -timeOutScanPocNuclei int    PocNuclei扫描超时 (default 6)
    -wsPoc, -workerScanPoc int          Poc并发 (default 100)
-   -wsw, -workerScanWeak int           爆破并发 (default 20)
+   -wsw, -workerScanWeak int           爆破并发 (default 6)
    -gsw, -groupScanWeak int            爆破分组 (default 10)
    -tsw, -timeOutScanWeak int          爆破超时 (default 6)
+   -nsh, -noScanHost                   跳过主机存活检测
+   -nsw, -noScanWeak                   跳过弱口令爆破
+   -nsp, -noScanPoc                    跳过POC漏洞验证
+   -nsv, -noScanVul                    跳过高危系统漏洞探测
 ```
 
 ### 四、更新日志
 
 ```text
+2022-06-01（v0.0.4）
+    [x]1.修复POC Xray扫描引擎
+    [x]2.修复外网是否可以达？可达下载chrome并截图
+    [+]3.优化进度条
+    [+]4.新增跳过（主机存活、弱口令、POC、高危漏洞）参数
 2022-05-29（v0.0.3）
     [x]1.修改弱口令爆破阻塞bug
     [x]2.优化进度条显示

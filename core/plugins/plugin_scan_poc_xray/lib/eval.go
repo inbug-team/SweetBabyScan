@@ -11,7 +11,6 @@ import (
 	"github.com/google/cel-go/common/types"
 	"github.com/google/cel-go/common/types/ref"
 	"github.com/google/cel-go/interpreter/functions"
-	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_poc_xray/models"
 	"github.com/inbug-team/SweetBabyScan/initializes/initialize_http_client"
 	exprPb "google.golang.org/genproto/googleapis/api/expr/v1alpha1"
 	"io"
@@ -50,7 +49,7 @@ func Evaluate(env *cel.Env, expression string, params map[string]interface{}) (r
 	return out, nil
 }
 
-func UrlTypeToString(u *models.UrlType) string {
+func UrlTypeToString(u *UrlType) string {
 	var buf strings.Builder
 	if u.Scheme != "" {
 		buf.WriteString(u.Scheme)
@@ -93,14 +92,13 @@ type CustomLib struct {
 
 func NewEnvOption() CustomLib {
 	c := CustomLib{}
-
 	c.envOptions = []cel.EnvOption{
 		cel.Container("lib"),
 		cel.Types(
-			&models.UrlType{},
-			&models.Request{},
-			&models.Response{},
-			&models.Reverse{},
+			&UrlType{},
+			&Request{},
+			&Response{},
+			&Reverse{},
 		),
 		cel.Declarations(
 			decls.NewVar("request", decls.NewObjectType("lib.Request")),
@@ -179,6 +177,7 @@ func NewEnvOption() CustomLib {
 					decls.Bool)),
 		),
 	}
+
 	c.programOptions = []cel.ProgramOption{
 		cel.Functions(
 			&functions.Overload{
@@ -383,7 +382,7 @@ func NewEnvOption() CustomLib {
 			&functions.Overload{
 				Operator: "reverse_wait_int",
 				Binary: func(lhs ref.Val, rhs ref.Val) ref.Val {
-					reverse, ok := lhs.Value().(*models.Reverse)
+					reverse, ok := lhs.Value().(*Reverse)
 					if !ok {
 						return types.ValOrErr(lhs, "unexpected type '%v' passed to 'wait'", lhs.Type())
 					}
@@ -411,6 +410,7 @@ func NewEnvOption() CustomLib {
 			},
 		),
 	}
+
 	return c
 }
 
@@ -451,7 +451,7 @@ func randomUppercase(n int) string {
 	return RandomStr(randSource, lowercase, n)
 }
 
-func reverseCheck(r *models.Reverse, timeout int64) bool {
+func reverseCheck(r *Reverse, timeout int64) bool {
 	if ceYeApi == "" || r.Domain == "" {
 		return false
 	}
@@ -493,7 +493,7 @@ func RandomStr(randSource *rand.Rand, letterBytes string, n int) string {
 	return string(randBytes)
 }
 
-func DoRequest(req *http.Request, redirect bool) (*models.Response, error) {
+func DoRequest(req *http.Request, redirect bool) (*Response, error) {
 	if req.Body == nil || req.Body == http.NoBody {
 	} else {
 		req.Header.Set("Content-Length", strconv.Itoa(int(req.ContentLength)))
@@ -520,8 +520,8 @@ func DoRequest(req *http.Request, redirect bool) (*models.Response, error) {
 	return resp, err
 }
 
-func ParseUrl(u *url.URL) *models.UrlType {
-	nu := &models.UrlType{}
+func ParseUrl(u *url.URL) *UrlType {
+	nu := &UrlType{}
 	nu.Scheme = u.Scheme
 	nu.Domain = u.Hostname()
 	nu.Host = u.Host
@@ -532,8 +532,8 @@ func ParseUrl(u *url.URL) *models.UrlType {
 	return nu
 }
 
-func ParseRequest(oReq *http.Request) (*models.Request, error) {
-	req := &models.Request{}
+func ParseRequest(oReq *http.Request) (*Request, error) {
+	req := &Request{}
 	req.Method = oReq.Method
 	req.Url = ParseUrl(oReq.URL)
 	header := make(map[string]string)
@@ -554,8 +554,8 @@ func ParseRequest(oReq *http.Request) (*models.Request, error) {
 	return req, nil
 }
 
-func ParseResponse(oResp *http.Response) (*models.Response, error) {
-	var resp models.Response
+func ParseResponse(oResp *http.Response) (*Response, error) {
+	var resp Response
 	header := make(map[string]string)
 	resp.Status = int32(oResp.StatusCode)
 	resp.Url = ParseUrl(oResp.Request.URL)

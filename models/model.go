@@ -81,6 +81,12 @@ type OutputFingerprint struct {
 	Icon    string              `json:"icon"`
 }
 
+// IP段统计
+type IpRangeStruct struct {
+	Key   string
+	Value int
+}
+
 // 命令行参数
 type Params struct {
 	SaveFile               string                         // 保存文件
@@ -124,6 +130,10 @@ type Params struct {
 	WorkerScanWeak         int                            // 爆破并发
 	GroupScanWeak          int                            // 爆破分组
 	TimeOutScanWeak        int                            // 爆破超时
+	NoScanHost             bool
+	NoScanWeak             bool
+	NoScanVul              bool
+	NoScanPoc              bool
 }
 
 // 主机存活结构

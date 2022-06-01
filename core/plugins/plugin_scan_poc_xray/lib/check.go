@@ -3,7 +3,6 @@ package lib
 import (
 	"fmt"
 	"github.com/google/cel-go/cel"
-	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_poc_xray/models"
 	dModels "github.com/inbug-team/SweetBabyScan/models"
 	"math/rand"
 	"net/http"
@@ -73,7 +72,7 @@ func ExecutePoc(oReq *http.Request, p *dModels.DataPocXray) (bool, error, string
 				continue
 			}
 			switch value := out.Value().(type) {
-			case *models.UrlType:
+			case *UrlType:
 				variableMap[k] = UrlTypeToString(value)
 			case int64:
 				variableMap[k] = int(value)
@@ -244,17 +243,17 @@ func doSearch(re string, body string) map[string]string {
 	return nil
 }
 
-func newReverse() *models.Reverse {
+func newReverse() *Reverse {
 	letters := "1234567890abcdefghijklmnopqrstuvwxyz"
 	randSource := rand.New(rand.NewSource(time.Now().Unix()))
 	sub := RandomStr(randSource, letters, 8)
 	if true {
 		//默认不开启dns解析
-		return &models.Reverse{}
+		return &Reverse{}
 	}
 	urlStr := fmt.Sprintf("http://%s.%s", sub, ceYeDomain)
 	u, _ := url.Parse(urlStr)
-	return &models.Reverse{
+	return &Reverse{
 		Url:                ParseUrl(u),
 		Domain:             u.Hostname(),
 		Ip:                 "",
@@ -262,7 +261,7 @@ func newReverse() *models.Reverse {
 	}
 }
 
-func clusterPoc(oReq *http.Request, p *dModels.DataPocXray, variableMap map[string]interface{}, req *models.Request, env *cel.Env, sLen int, keys []string) (success bool, err error) {
+func clusterPoc(oReq *http.Request, p *dModels.DataPocXray, variableMap map[string]interface{}, req *Request, env *cel.Env, sLen int, keys []string) (success bool, err error) {
 	for _, rule := range p.Rules {
 		for k1, v1 := range variableMap {
 			if IsContain(keys, k1) {
@@ -387,7 +386,7 @@ func clusterPoc(oReq *http.Request, p *dModels.DataPocXray, variableMap map[stri
 	return success, nil
 }
 
-func clusterPoc1(oReq *http.Request, p *dModels.DataPocXray, variableMap map[string]interface{}, req *models.Request, env *cel.Env, keys []string) (success bool, err error) {
+func clusterPoc1(oReq *http.Request, p *dModels.DataPocXray, variableMap map[string]interface{}, req *Request, env *cel.Env, keys []string) (success bool, err error) {
 	setMap := make(map[string]interface{})
 	for k := range p.Sets {
 		setMap[k] = p.Sets[k][0]
@@ -575,7 +574,7 @@ func clusterPoc1(oReq *http.Request, p *dModels.DataPocXray, variableMap map[str
 	return success, nil
 }
 
-func clusterSend(oReq *http.Request, variableMap map[string]interface{}, req *models.Request, env *cel.Env, rule dModels.Rules) (bool, error) {
+func clusterSend(oReq *http.Request, variableMap map[string]interface{}, req *Request, env *cel.Env, rule dModels.Rules) (bool, error) {
 	if oReq.URL.Path != "" && oReq.URL.Path != "/" {
 		req.Url.Path = fmt.Sprint(oReq.URL.Path, rule.Path)
 	} else {
@@ -666,7 +665,7 @@ func evalSet(env *cel.Env, variableMap map[string]interface{}) {
 				continue
 			}
 			switch value := out.Value().(type) {
-			case *models.UrlType:
+			case *UrlType:
 				variableMap[k] = UrlTypeToString(value)
 			case int64:
 				variableMap[k] = fmt.Sprintf("%v", value)

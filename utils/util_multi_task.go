@@ -88,6 +88,7 @@ func MultiTask(
 			bar.Set("leftTime", fmt.Sprintf("LeftTime: %s", StaticLeftTime(leftTime)))
 			// 完成计数
 			if ingTask == totalTask {
+				bar.Set("leftTime", "")
 				after(doneTask)
 				goto Loop
 			}

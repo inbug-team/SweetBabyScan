@@ -6,6 +6,7 @@ import (
 	"github.com/inbug-team/SweetBabyScan/models"
 	"github.com/inbug-team/SweetBabyScan/utils"
 	"math"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -23,6 +24,8 @@ var vulData []models.WaitScanVul
 var weakData []models.WaitScanWeak
 var index = 2
 var savePorts = map[string]interface{}{}
+var aliveIps = map[string]string{}
+var ipRange = map[string]int{}
 
 // 1.迭代方法
 func (t *taskScanPort) doIter(wg *sync.WaitGroup, worker chan bool, result chan utils.CountResult, task utils.Task, data ...interface{}) {
@@ -129,6 +132,16 @@ func (t *taskScanPort) doDone(item interface{}) error {
 	savePorts[fmt.Sprintf("D%d", index)] = data.Probe
 	index++
 
+	if t.params.NoScanHost {
+		aliveIps[data.Ip] = "1"
+
+		if _, ok := ipRange[data.Ip]; ok {
+			ipRange[data.IpRange] += 1
+		} else {
+			ipRange[data.IpRange] = 1
+		}
+	}
+
 	if data.Port == "135" || data.Port == "139" || data.Port == "445" {
 		vulData = append(vulData, models.WaitScanVul{
 			IP:   data.Ip,
@@ -222,6 +235,35 @@ func DoTaskScanPort(req models.Params) ([]string, []models.WaitScanVul, []models
 		func() {
 			// 保存数据-端口信息
 			utils.SaveData(req.SaveFile, "端口信息", savePorts)
+
+			if req.NoScanHost {
+				// 保存数据-IP段
+				var listIpRange []models.IpRangeStruct
+				for k, v := range ipRange {
+					listIpRange = append(listIpRange, models.IpRangeStruct{Key: k, Value: v})
+				}
+				sort.Slice(listIpRange, func(i, j int) bool {
+					return listIpRange[i].Value > listIpRange[j].Value
+				})
+				indexIpSegments := 2
+				saveIpSegments := map[string]interface{}{}
+				for _, v := range listIpRange {
+					saveIpSegments[fmt.Sprintf("A%d", indexIpSegments)] = v.Key
+					saveIpSegments[fmt.Sprintf("B%d", indexIpSegments)] = v.Value
+					indexIpSegments++
+				}
+				utils.SaveData(req.SaveFile, "IP段", saveIpSegments)
+
+				// 保存数据-存活IP
+				saveIps := map[string]interface{}{}
+				indexIps := 2
+				for v := range aliveIps {
+					saveIps[fmt.Sprintf("A%d", indexIps)] = v
+					indexIps++
+				}
+				utils.SaveData(req.SaveFile, "存活IP", saveIps)
+			}
+
 		},
 		ips,
 		ports,
