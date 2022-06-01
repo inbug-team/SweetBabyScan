@@ -198,7 +198,7 @@ func DoScanSite(url string, timeOutScanSite, timeOutScreen int, isScreen bool) (
 
 	doc.Find("title").Each(func(i int, s *goquery.Selection) {
 		if s != nil {
-			site.Title = s.Text()
+			site.Title = strings.TrimSpace(strings.Trim(s.Text(), "\n"))
 		}
 	})
 
@@ -216,22 +216,6 @@ func DoScanSite(url string, timeOutScanSite, timeOutScreen int, isScreen bool) (
 			}
 		}
 	})
-
-	//icon := ""
-	//doc.Find("link").Each(func(i int, s *goquery.Selection) {
-	//	if s != nil {
-	//		v, ok := "", false
-	//		if v, ok = s.Attr("rel"); ok {
-	//			val, _ := s.Attr("href")
-	//			switch strings.ToLower(v) {
-	//			case "shortcut icon":
-	//				icon = val
-	//			case "icon":
-	//				icon = val
-	//			}
-	//		}
-	//	}
-	//})
 
 	header, _ := json.Marshal(resp.Header)
 	site.Header = string(header)

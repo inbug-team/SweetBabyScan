@@ -151,7 +151,7 @@ func taskScanWeak(req models.Params, item models.WaitScanWeak, key string) {
 
 				if req.IsLog {
 					fmt.Println(fmt.Sprintf(
-						`[%s:%s|%s|%s|%s] 爆破成功，账号：%s|密码：%s`,
+						`[%s:%s|%s|%s|%s] 爆破成功 <user:%s> <pass:%s>`,
 						result.Ip,
 						result.Port,
 						result.Protocol,
