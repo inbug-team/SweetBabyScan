@@ -102,9 +102,13 @@ GOOS=linux GOARCH=386 go build -ldflags="-s -w" -trimpath -o SbScan
 
 > ./SbScan -h=192.168.188.1/24,10.0.0.1/16 -p=22,80,443
 
-- Linux & Mac临时修改最大打开文件限制，提升并发性能
+- 修改并发提高性能
 
-> ulimit -n 65535 && ./SbScan -wsh=2048 -wsp=1024 -h=192.168.188.1/24,10.0.0.1/16 -p=22,80,443
+> ./SbScan -wsh=2048 -wsp=1024 -h=192.168.188.1/24,10.0.0.1/16 -p=22,80,443
+
+- 跳过主机存活检测（nsh）、POC漏洞探测（nsp）、弱口令爆破（nsw）、高危漏洞探测（nsv）
+
+> ./SweetBabyScan -h=101.43.241.22/24 -p=22,80 --nsh --nsp --nsw --nsv
 
 ### 三、参数
 
