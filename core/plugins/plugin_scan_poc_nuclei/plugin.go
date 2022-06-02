@@ -155,6 +155,7 @@ func ParsePocNucleiData(data []byte) (tpl *templates.Template, err error) {
 	}
 
 	defer func() {
+		file.Close()
 		err := os.Remove(file.Name())
 		if err != nil {
 			fmt.Println(err)
@@ -166,6 +167,7 @@ func ParsePocNucleiData(data []byte) (tpl *templates.Template, err error) {
 	}
 
 	tpl, err = templates.Parse(file.Name(), nil, ExecOptions)
+
 	return
 }
 

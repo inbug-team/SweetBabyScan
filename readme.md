@@ -60,6 +60,7 @@ git clone https://github.com/inbug-team/SweetBabyScan.git --recursive
 ```
 
 - 初始化module
+
 ```shell
 go mod tidy
 go mod vendor
@@ -162,8 +163,9 @@ Flags:
 2022-06-01（v0.0.4）
     [x]1.修复POC Xray扫描引擎
     [x]2.修复外网是否可以达？可达下载chrome并截图
-    [+]3.优化进度条
-    [+]4.新增跳过（主机存活、弱口令、POC、高危漏洞）参数
+    [x]3.修复临时文件无法删除bug
+    [+]4.优化进度条
+    [+]5.新增跳过（主机存活、弱口令、POC、高危漏洞）参数
 2022-05-29（v0.0.3）
     [x]1.修改弱口令爆破阻塞bug
     [x]2.优化进度条显示
@@ -213,7 +215,6 @@ https://github.com/inbug-team/SweetBabyScan/issues
 
 如有更好的功能建议，欢迎添加微信，好的功能建议采纳后，将会更新到下一个版本中。
 ![-Wechat](img/WeChat.png)
-
 
 同时也可通过公众号联系：
 ![-w784](img/InBug.bmp)
