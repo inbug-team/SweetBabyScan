@@ -9,14 +9,17 @@ import (
 )
 
 func InitScreenShot() bool {
-	domain := "myip.ipip.net"
-	status := plugin_scan_host.ScanHostByPing(domain)
+	path := "./static/ip.png"
+	status, _ := utils.PathExists(path)
 	if status {
-		path := "./static/ip.png"
-		if status, _ := utils.PathExists(path); !status {
-			fmt.Println("downloading chrome headless......")
-			plugin_scan_site.DoFullScreenshot(fmt.Sprintf("http://%s/", domain), path, 120*time.Second)
-		}
+		return status
+	}
+
+	domain := "myip.ipip.net"
+	status = plugin_scan_host.ScanHostByPing(domain)
+	if status {
+		fmt.Println("downloading chrome headless......")
+		plugin_scan_site.DoFullScreenshot(fmt.Sprintf("http://%s/", domain), path, 120*time.Second)
 	}
 	return status
 }
