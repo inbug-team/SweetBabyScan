@@ -195,9 +195,9 @@ func main() {
 
 	fmt.Println(fmt.Sprintf("ulimit soft: %d ｜ulimit hard: %d", soft, hard))
 	if isScreen {
-		fmt.Println("internet reachable")
+		fmt.Println("chrome headless ready")
 	} else {
-		fmt.Println("internet unreachable")
+		fmt.Println("chrome headless not ready")
 	}
 
 	p := models.Params{}
