@@ -180,6 +180,10 @@ func taskScanWeak(req models.Params, item models.WaitScanWeak, key string) {
 }
 
 func DoTaskScanWeak(req models.Params) {
+	if len(req.WaitWeak) == 0 {
+		return
+	}
+
 	fmt.Println("****************<-START->****************")
 	fmt.Println(fmt.Sprintf(
 		"开始弱口令爆破\r\n\r\n> 爆破并发：%d\r\n> 爆破分组：%d\r\n",
