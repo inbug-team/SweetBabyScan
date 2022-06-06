@@ -234,9 +234,9 @@ func doTask(p models.Params) {
 					p.UserPass[key]["user"] = tmpUser
 				}
 			}
-			if tmpUser, status := readFileArr(p.WPass); status {
+			if tmpPass, status := readFileArr(p.WPass); status {
 				for key := range p.UserPass {
-					p.UserPass[key]["pass"] = tmpUser
+					p.UserPass[key]["pass"] = tmpPass
 				}
 			}
 		}
@@ -245,12 +245,12 @@ func doTask(p models.Params) {
 		if p.AUser != "" && p.APass != "" {
 			if tmpUser, status := readFileArr(p.AUser); status {
 				for key := range p.UserPass {
-					p.UserPass[key]["user"] = tmpUser
+					p.UserPass[key]["user"] = append(p.UserPass[key]["user"], tmpUser...)
 				}
 			}
-			if tmpUser, status := readFileArr(p.APass); status {
+			if tmpPass, status := readFileArr(p.APass); status {
 				for key := range p.UserPass {
-					p.UserPass[key]["pass"] = tmpUser
+					p.UserPass[key]["pass"] = append(p.UserPass[key]["pass"], tmpPass...)
 				}
 			}
 		}

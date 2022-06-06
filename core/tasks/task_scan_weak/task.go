@@ -34,8 +34,8 @@ func taskScanWeak(req models.Params, item models.WaitScanWeak, key string) {
 	}
 
 	up := req.UserPass[key]
-	passList := up["pass"]
-	userList := up["user"]
+	passList := utils.RemoveRepeatedElement(up["pass"])
+	userList := utils.RemoveRepeatedElement(up["user"])
 
 	if len(passList) != 0 && len(userList) == 0 {
 		userList = []string{""}

@@ -9,4 +9,7 @@ func main() {
 		fmt.Println(k)
 	}
 
+	arr := []string{"1", "2"}
+	arr = append(arr, []string{"3", "4"}...)
+	fmt.Println(arr)
 }
