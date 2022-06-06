@@ -18,19 +18,19 @@ func CheckSQL(hostType, ip, user, pwd string, port int) bool {
 			"%s:%s@tcp(%s:%d)/%s?timeout=%ds",
 			user, pwd, ip, port, "", 6,
 		)
-		_, err = gorm.Open(mysql.Open(connectStr), &gorm.Config{})
+		_, err = gorm.Open(mysql.Open(connectStr), &gorm.Config{Logger: nil})
 	case "postgres":
 		connectStr = fmt.Sprintf(
 			"host=%s port=%d user=%s dbname=%s sslmode=disable password=%s",
 			ip, port, user, "", pwd,
 		)
-		_, err = gorm.Open(postgres.Open(connectStr), &gorm.Config{})
+		_, err = gorm.Open(postgres.Open(connectStr), &gorm.Config{Logger: nil})
 	case "mssql":
 		connectStr = fmt.Sprintf(
 			"sqlserver://%s:%s@%s:%d?database=%s",
 			user, pwd, ip, port, "",
 		)
-		_, err = gorm.Open(sqlserver.Open(connectStr), &gorm.Config{})
+		_, err = gorm.Open(sqlserver.Open(connectStr), &gorm.Config{Logger: nil})
 	}
 
 	if err != nil {
