@@ -113,7 +113,7 @@ GOOS=linux GOARCH=386 go build -ldflags="-s -w" -trimpath -o SbScan
 
 - 指定IP文件、密码文件、账号文件、输出excel文件、指定爆破协议
 
-> ./SweetBabyScan -h=ip.txt -wp=pass.txt -wu=user.txt -sf=test.xlsx -ssw=redis,ssh,mysql
+> ./SbScan -h=ip.txt -wp=pass.txt -wu=user.txt -sf=test.xlsx -ssw=redis,ssh,mysql
 
 ### 三、参数
 
