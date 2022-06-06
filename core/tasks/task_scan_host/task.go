@@ -110,7 +110,6 @@ func DoTaskScanHost(req models.Params) []string {
 			req.Host,
 			req.HostBlack,
 		),
-		//"主机存活检测中",
 		"完成主机存活检测",
 		func() {
 			var listIpRange []models.IpRangeStruct
