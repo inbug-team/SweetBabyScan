@@ -111,6 +111,10 @@ GOOS=linux GOARCH=386 go build -ldflags="-s -w" -trimpath -o SbScan
 
 > ./SbScan -h=192.168.188.1/24 -p=22,80 --nsh --nsp --nsw --nsv
 
+- 指定IP文件、密码文件、账号文件、输出excel文件、指定爆破协议
+
+> ./SweetBabyScan -h=ip.txt -wp=pass.txt -wu=user.txt -sf=test.xlsx -ssw=redis,ssh,mysql
+
 ### 三、参数
 
 - 查看参数帮助命令
@@ -119,13 +123,13 @@ GOOS=linux GOARCH=386 go build -ldflags="-s -w" -trimpath -o SbScan
 
 ```text
 Usage:
-  ./SweetBabyScan [flags]
+  ./SbScan [flags]
 
 Flags:
-   -l, -lang string                    语言 (default "zh-cn")
    -il, -isLog                         是否显示日志 (default true)
    -is, -isScreen                      是否启用截图 (default true)
-   -h, -host string                    检测网段 (default "192.168.0.0/16,172.16.0.0/12,10.0.0.0/8")
+   -sf, -saveFile string               指定保存文件路径[以.xlsx结尾]
+   -h, -host string                    检测网段或者txt文件[以.txt结尾，一行一组回车换行] (default "192.168.0.0/16,172.16.0.0/12,10.0.0.0/8")
    -p, -port string                    端口范围：tiny[精简]、normal[常用]、database[数据库]、caffe[咖啡厅/酒店/机场]、iot[物联网]、all[全部]、自定义 (default "tiny")
    -pt, -protocol string               端口范围：tcp、udp、tcp+udp (default "tcp+udp")
    -hb, -hostBlack string              排除网段
@@ -155,11 +159,21 @@ Flags:
    -nsw, -noScanWeak                   跳过弱口令爆破
    -nsp, -noScanPoc                    跳过POC漏洞验证
    -nsv, -noScanVul                    跳过高危系统漏洞探测
+   -ssw, -serviceScanWeak string       指定爆破协议：ssh,smb,snmp,sqlserver,mysql,mongodb,postgres,redis,ftp,clickhouse,elasticsearch，多个协议英文逗号分隔，默认全部
+   -au, -aUser string                  追加弱口令账号字典[以.txt结尾]
+   -ap, -aPass string                  追加弱口令密码字典[以.txt结尾]
+   -wu, -wUser string                  覆盖弱口令账号字典[以.txt结尾]
+   -wp, -wPass string                  覆盖弱口令密码字典[以.txt结尾]
 ```
 
 ### 四、更新日志
 
 ```text
+2022-06-06（v0.0.5）
+    [+]1.自定义输出文件
+    [+]2.自定义爆破协议
+    [+]3.自定义爆破账号密码文件（支持追加模式和覆盖模式）
+    [+]4.自定义IP文件
 2022-06-01（v0.0.4）
     [x]1.修复POC Xray扫描引擎
     [x]2.修复外网是否可以达？可达下载chrome并截图

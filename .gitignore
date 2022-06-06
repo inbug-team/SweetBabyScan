@@ -2,6 +2,7 @@
 /vendor
 /.idea
 /static
+/assets
 /SweetBabyScan
 /SbScan
 /SbScanMacAmd64

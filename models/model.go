@@ -90,7 +90,6 @@ type IpRangeStruct struct {
 // 命令行参数
 type Params struct {
 	SaveFile               string                         // 保存文件
-	Lang                   string                         // 语言
 	Host                   string                         // 检测网段
 	Port                   string                         // 端口
 	Protocol               string                         // 协议
@@ -130,10 +129,15 @@ type Params struct {
 	WorkerScanWeak         int                            // 爆破并发
 	GroupScanWeak          int                            // 爆破分组
 	TimeOutScanWeak        int                            // 爆破超时
-	NoScanHost             bool
-	NoScanWeak             bool
-	NoScanVul              bool
-	NoScanPoc              bool
+	NoScanHost             bool                           // 跳过主机存活检测
+	NoScanWeak             bool                           // 跳过弱口令爆破
+	NoScanVul              bool                           // 跳过高危漏洞探测
+	NoScanPoc              bool                           // 跳过POC漏洞探测
+	ServiceScanWeak        string                         // 指定爆破协议
+	AUser                  string                         // 追加账号字典
+	APass                  string                         // 追加密码字典
+	WUser                  string                         // 覆盖账号字典
+	WPass                  string                         // 覆盖密码字典
 }
 
 // 主机存活结构

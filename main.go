@@ -88,29 +88,67 @@ func findPocsXray(p models.Params) {
 	)
 }
 
+// 读取文件
+func readFileStr(data string) (newData string, status bool) {
+	if strings.HasSuffix(strings.ToLower(data), ".txt") {
+		dataList, err := utils.ReadLinesFormFile(data)
+		if err != nil {
+			fmt.Println(fmt.Sprintf("[x]读取%s文件失败，失败原因：%s", data, err.Error()))
+			os.Exit(0)
+		}
+		newData = strings.Trim(strings.Join(dataList, ","), ",")
+		status = true
+	}
+	return
+}
+
+func readFileArr(data string) (newData []string, status bool) {
+	if strings.HasSuffix(strings.ToLower(data), ".txt") {
+		dataList, err := utils.ReadLinesFormFile(data)
+		if err != nil {
+			fmt.Println(fmt.Sprintf("[x]读取%s文件失败，失败原因：%s", data, err.Error()))
+			os.Exit(0)
+		}
+		newData = dataList
+		status = true
+	} else {
+		fmt.Println("[x]文件必须以,txt结尾")
+		os.Exit(0)
+	}
+	return
+}
+
 // 执行任务
 func doTask(p models.Params) {
 	fmt.Println("Loading......，Please be patient !")
 	now := time.Now()
 
 	// 定义保存文件
-	p.SaveFile = fmt.Sprintf("./result-%s.xlsx", now.Format("20060102150405"))
-
-	// 加载探针指纹
-	p.RuleProbe = config.RuleProbe
+	if p.SaveFile == "" {
+		p.SaveFile = fmt.Sprintf("./result-%s.xlsx", now.Format("20060102150405"))
+	} else {
+		if !strings.HasSuffix(strings.ToLower(p.SaveFile), ".xlsx") {
+			fmt.Println("[x]保存文件仅支持excel，必须以xlsx结尾")
+			os.Exit(0)
+		}
+	}
 
 	// 加载乱序IP
+	if tmpHost, status := readFileStr(p.Host); status {
+		p.Host = tmpHost
+	}
+
+	if tmpHostBlack, status := readFileStr(p.HostBlack); status {
+		p.HostBlack = tmpHostBlack
+	}
+
 	p.IPs = utils.GetIps(p.Host, p.HostBlack)
 
 	// 初始化excel
 	utils.InitExcel(p.SaveFile, config.TmpExcel)
 
-	// 加载POC等级
-	if p.FilterVulLevel == "" {
-		p.FilterVulLevel = "critical,high"
-	} else if p.FilterVulLevel == "all" {
-		p.FilterVulLevel = "critical,high,medium,low,info,unknown"
-	}
+	// 加载探针指纹
+	p.RuleProbe = config.RuleProbe
 
 	// 加载端口
 	portsMap := map[string]string{
@@ -137,17 +175,6 @@ func doTask(p models.Params) {
 		p.Protocols = []string{"tcp", "udp"}
 	}
 
-	// 加载筛选POC Nuclei
-	pocNuclei := plugin_scan_poc_nuclei.ParsePocNucleiFiles(config.DirPocNuclei)
-	p.PocNuclei, _ = plugin_scan_poc_nuclei.FilterPocNucleiData(pocNuclei, fnFilterNuclei, p)
-
-	// 加载筛选POC Xray
-	pocXray := load.ParsePocXrayFiles(config.DirPocXray)
-	p.PocXray, _ = load.FilterPocXrayData(pocXray, fnFilterXray, p)
-
-	// 加载弱口令字典
-	p.UserPass = plugin_scan_weak.ParseUserPass(config.Passwords)
-
 	// 1.主机存活检测
 	if !p.NoScanHost {
 		p.IPs = task_scan_host.DoTaskScanHost(p)
@@ -161,6 +188,21 @@ func doTask(p models.Params) {
 
 	// 4.POC Nuclei+Xray漏洞探测
 	if !p.NoScanPoc {
+		// 加载POC等级
+		if p.FilterVulLevel == "" {
+			p.FilterVulLevel = "critical,high"
+		} else if p.FilterVulLevel == "all" {
+			p.FilterVulLevel = "critical,high,medium,low,info,unknown"
+		}
+
+		// 加载筛选POC Nuclei
+		pocNuclei := plugin_scan_poc_nuclei.ParsePocNucleiFiles(config.DirPocNuclei)
+		p.PocNuclei, _ = plugin_scan_poc_nuclei.FilterPocNucleiData(pocNuclei, fnFilterNuclei, p)
+
+		// 加载筛选POC Xray
+		pocXray := load.ParsePocXrayFiles(config.DirPocXray)
+		p.PocXray, _ = load.FilterPocXrayData(pocXray, fnFilterXray, p)
+
 		index := task_scan_poc_nuclei.DoTaskScanPocNuclei(p)
 		task_scan_poc_xray.DoTaskScanPocXray(p, index)
 	}
@@ -172,6 +214,47 @@ func doTask(p models.Params) {
 
 	// 7.弱口令爆破
 	if !p.NoScanWeak {
+		// 加载弱口令字典
+		p.UserPass = plugin_scan_weak.ParseUserPass(config.Passwords)
+
+		// 指定协议
+		if p.ServiceScanWeak != "" {
+			services := strings.Split(p.ServiceScanWeak, ",")
+			for service := range p.UserPass {
+				if utils.Contains(services, service) < 0 {
+					delete(p.UserPass, service)
+				}
+			}
+		}
+
+		// 覆盖模式
+		if p.WUser != "" && p.WPass != "" {
+			if tmpUser, status := readFileArr(p.WUser); status {
+				for key := range p.UserPass {
+					p.UserPass[key]["user"] = tmpUser
+				}
+			}
+			if tmpUser, status := readFileArr(p.WPass); status {
+				for key := range p.UserPass {
+					p.UserPass[key]["pass"] = tmpUser
+				}
+			}
+		}
+
+		// 追加模式
+		if p.AUser != "" && p.APass != "" {
+			if tmpUser, status := readFileArr(p.AUser); status {
+				for key := range p.UserPass {
+					p.UserPass[key]["user"] = tmpUser
+				}
+			}
+			if tmpUser, status := readFileArr(p.APass); status {
+				for key := range p.UserPass {
+					p.UserPass[key]["pass"] = tmpUser
+				}
+			}
+		}
+
 		task_scan_weak.DoTaskScanWeak(p)
 	}
 
@@ -186,7 +269,7 @@ func main() {
 	myFigure := figure.NewColorFigure("SBScan", "doom", "red", true)
 	myFigure.Print()
 	fmt.Println("全称：SweetBaby，甜心宝贝扫描器")
-	fmt.Println("Version <0.0.4> Made By InBug")
+	fmt.Println("Version <0.0.5> Made By InBug")
 
 	soft, hard, err := ulimit.GetRlimit()
 	if err != nil {
@@ -204,10 +287,10 @@ func main() {
 
 	flagSet := goflags.NewFlagSet()
 
-	flagSet.StringVarP(&p.Lang, "lang", "l", "zh-cn", "语言")
 	flagSet.BoolVarP(&p.IsLog, "isLog", "il", true, "是否显示日志")
 	flagSet.BoolVarP(&p.IsScreen, "isScreen", "is", isScreen, "是否启用截图")
-	flagSet.StringVarP(&p.Host, "host", "h", "192.168.0.0/16,172.16.0.0/12,10.0.0.0/8", "检测网段")
+	flagSet.StringVarP(&p.SaveFile, "saveFile", "sf", "", "指定保存文件路径[以.xlsx结尾]")
+	flagSet.StringVarP(&p.Host, "host", "h", "192.168.0.0/16,172.16.0.0/12,10.0.0.0/8", "检测网段或者txt文件[以.txt结尾，一行一组回车换行]")
 	flagSet.StringVarP(&p.Port, "port", "p", "tiny", "端口范围：tiny[精简]、normal[常用]、database[数据库]、caffe[咖啡厅/酒店/机场]、iot[物联网]、all[全部]、自定义")
 	flagSet.StringVarP(&p.Protocol, "protocol", "pt", "tcp+udp", "端口范围：tcp、udp、tcp+udp")
 	flagSet.StringVarP(&p.HostBlack, "hostBlack", "hb", "", "排除网段")
@@ -237,6 +320,11 @@ func main() {
 	flagSet.BoolVarP(&p.NoScanWeak, "noScanWeak", "nsw", false, "跳过弱口令爆破")
 	flagSet.BoolVarP(&p.NoScanPoc, "noScanPoc", "nsp", false, "跳过POC漏洞验证")
 	flagSet.BoolVarP(&p.NoScanVul, "noScanVul", "nsv", false, "跳过高危系统漏洞探测")
+	flagSet.StringVarP(&p.ServiceScanWeak, "serviceScanWeak", "ssw", "", "指定爆破协议：ssh,smb,snmp,sqlserver,mysql,mongodb,postgres,redis,ftp,clickhouse,elasticsearch，多个协议英文逗号分隔，默认全部")
+	flagSet.StringVarP(&p.AUser, "aUser", "au", "", "追加弱口令账号字典[以.txt结尾]")
+	flagSet.StringVarP(&p.APass, "aPass", "ap", "", "追加弱口令密码字典[以.txt结尾]")
+	flagSet.StringVarP(&p.WUser, "wUser", "wu", "", "覆盖弱口令账号字典[以.txt结尾]")
+	flagSet.StringVarP(&p.WPass, "wPass", "wp", "", "覆盖弱口令密码字典[以.txt结尾]")
 
 	flagSet.Parse()
 

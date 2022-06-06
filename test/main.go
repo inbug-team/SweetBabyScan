@@ -1,13 +1,12 @@
 package main
 
-import (
-	"fmt"
-	"os"
-)
+import "fmt"
 
 func main() {
-	path := "./1.txt"
-	if err := os.Remove(path); err != nil {
-		fmt.Println(err)
+
+	a := map[string]string{"a": "1", "b": "2"}
+	for k := range a {
+		fmt.Println(k)
 	}
+
 }

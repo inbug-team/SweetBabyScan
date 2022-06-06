@@ -29,6 +29,10 @@ func taskScanWeakGroup(req models.Params, item models.WaitScanWeak, wg *sync.Wai
 
 // 爆破
 func taskScanWeak(req models.Params, item models.WaitScanWeak, key string) {
+	if _, ok := req.UserPass[key]; !ok {
+		return
+	}
+
 	up := req.UserPass[key]
 	passList := up["pass"]
 	userList := up["user"]
@@ -40,7 +44,7 @@ func taskScanWeak(req models.Params, item models.WaitScanWeak, key string) {
 	totalTask := uint(len(passList) * len(userList))
 	var ingTask uint = 0
 
-	tmpl := `{{string . "alive" | yellow}} {{counters . | red}} {{ bar . "[" "=" (cycle . "↖" "↗" "↘" "↙" ) "." "]"}} {{percent . | green}} {{speed . | blue}}`
+	tmpl := `{{string . "alive" | yellow}} {{counters . | red}} {{ bar . "[" "=" (cycle . "↖" "↗" "↘" "↙" ) "." "]"}} {{percent . | green}} {{speed . | blue}} {{string . "result" | magenta}}`
 	bar := pb.ProgressBarTemplate(tmpl).Start(int(totalTask))
 	bar.Set("alive", fmt.Sprintf("%s:%s<%s>[+](0)", item.Ip, item.Port, item.Service))
 
@@ -141,29 +145,20 @@ func taskScanWeak(req models.Params, item models.WaitScanWeak, key string) {
 				result := res.Result.(models.ScanWeak)
 
 				lock.Lock()
+
 				saveData[fmt.Sprintf(`A%d`, index)] = result.Ip
 				saveData[fmt.Sprintf(`B%d`, index)], _ = strconv.Atoi(result.Port)
 				saveData[fmt.Sprintf(`C%d`, index)] = result.Service
 				saveData[fmt.Sprintf(`D%d`, index)] = result.User
 				saveData[fmt.Sprintf(`E%d`, index)] = result.Pass
 				index++
-				lock.Unlock()
 
-				if req.IsLog {
-					fmt.Println(fmt.Sprintf(
-						`[%s:%s|%s|%s|%s] 爆破成功 <user:%s> <pass:%s>`,
-						result.Ip,
-						result.Port,
-						result.Protocol,
-						result.Service,
-						result.Probe,
-						result.User,
-						result.Pass,
-					))
-				}
 				bar.Set("alive", fmt.Sprintf("%s:%s<%s>[+](1)", item.Ip, item.Port, item.Service))
+				bar.Set("result", fmt.Sprintf("<[user:%s] [pass:%s]>", result.User, result.Pass))
 				bar.Add(int(totalTask - ingTask))
 				bar.Finish()
+
+				lock.Unlock()
 				return
 			}
 
