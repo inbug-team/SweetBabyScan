@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/inbug-team/SweetBabyScan/config"
 	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_poc_xray"
-	//"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_poc_xray/structs"
 	"github.com/inbug-team/SweetBabyScan/models"
 	"github.com/inbug-team/SweetBabyScan/utils"
 	"math"
