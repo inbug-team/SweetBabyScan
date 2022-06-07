@@ -217,7 +217,6 @@ func DoTaskScanPort(req models.Params) ([]string, []models.WaitScanVul, []models
 		_totalTask,
 		uint(req.WorkerScanPort),
 		totalTime,
-		req.IsLog,
 		task.doIter,
 		task.doTask,
 		task.doDone,

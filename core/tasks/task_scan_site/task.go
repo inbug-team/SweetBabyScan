@@ -104,7 +104,6 @@ func DoTaskScanSite(req models.Params) []models.ScanSite {
 		totalTask,
 		uint(req.WorkerScanSite),
 		totalTime,
-		req.IsLog,
 		task.doIter,
 		task.doTask,
 		task.doDone,

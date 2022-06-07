@@ -122,7 +122,6 @@ func DoTaskScanPocXray(req models.Params, i int) {
 		totalTask,
 		uint(req.WorkerScanPoc),
 		totalTime,
-		req.IsLog,
 		task.doIter,
 		task.doTask,
 		task.doDone,

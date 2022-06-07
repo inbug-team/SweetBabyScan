@@ -97,7 +97,6 @@ func DoTaskScanHost(req models.Params) []string {
 		totalTask,
 		uint(req.WorkerScanHost),
 		totalTime,
-		req.IsLog,
 		task.doIter,
 		task.doTask,
 		task.doDone,

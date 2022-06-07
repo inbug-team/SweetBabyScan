@@ -126,7 +126,6 @@ func DoTaskScanPocNuclei(req models.Params) int {
 		totalTask,
 		uint(req.WorkerScanPoc),
 		totalTime,
-		req.IsLog,
 		task.doIter,
 		task.doTask,
 		task.doDone,

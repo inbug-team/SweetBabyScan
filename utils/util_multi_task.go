@@ -32,7 +32,6 @@ func StaticLeftTime(t float32) string {
 
 func MultiTask(
 	totalTask, workerNumber, totalTime uint,
-	isLog bool,
 	iter Iter,
 	task Task,
 	done Done,

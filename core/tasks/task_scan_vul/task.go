@@ -244,7 +244,6 @@ func DoTaskScanVul(req models.Params) {
 		totalTask,
 		uint(req.WorkerScanPort),
 		totalTime,
-		req.IsLog,
 		task.doIter,
 		task.doTask,
 		task.doDone,
