@@ -1,5 +1,13 @@
 package plugin_scan_host
 
+import (
+	"bytes"
+	"fmt"
+	"os/exec"
+	"strings"
+	"syscall"
+)
+
 // PING检测存活
 func ScanHostByPing(host string) bool {
 	var command *exec.Cmd
