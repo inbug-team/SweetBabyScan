@@ -15,6 +15,19 @@ import (
 var index = 2
 var saveData = map[string]interface{}{}
 var lock sync.Mutex
+var workerMap = map[string]int{
+	"ssh":           1,
+	"smb":           1,
+	"snmp":          1,
+	"sqlserver":     4,
+	"mysql":         4,
+	"mongodb":       4,
+	"postgres":      4,
+	"redis":         6,
+	"ftp":           1,
+	"clickhouse":    4,
+	"elasticsearch": 4,
+}
 
 // 爆破分组
 func taskScanWeakGroup(req models.Params, item models.WaitScanWeak, wg *sync.WaitGroup, workerGroup chan bool, key string) {
@@ -49,7 +62,7 @@ func taskScanWeak(req models.Params, item models.WaitScanWeak, key string) {
 	bar.Set("alive", fmt.Sprintf("%s:%s<%s>[+](0)", item.Ip, item.Port, item.Service))
 
 	var wg sync.WaitGroup
-	workerNumber := uint(req.WorkerScanWeak)
+	workerNumber := uint(workerMap[key])
 	if totalTask <= workerNumber {
 		workerNumber = totalTask
 	}
@@ -180,9 +193,15 @@ func DoTaskScanWeak(req models.Params) {
 	}
 
 	fmt.Println("****************<-START->****************")
+
+	service := req.ServiceScanWeak
+	if service == "" {
+		service = "全部"
+	}
+
 	fmt.Println(fmt.Sprintf(
-		"开始弱口令爆破\r\n\r\n> 爆破并发：%d\r\n> 爆破分组：%d\r\n",
-		req.WorkerScanWeak,
+		"开始弱口令爆破\r\n\r\n> 爆破协议：%s\r\n> 爆破分组：%d\r\n",
+		service,
 		req.GroupScanWeak,
 	))
 

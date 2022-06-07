@@ -126,7 +126,6 @@ type Params struct {
 	WorkerScanPoc          int                            // Poc并发
 	WaitWeak               []WaitScanWeak                 // 待爬漏洞列表
 	UserPass               map[string]map[string][]string // 弱口令字典
-	WorkerScanWeak         int                            // 爆破并发
 	GroupScanWeak          int                            // 爆破分组
 	TimeOutScanWeak        int                            // 爆破超时
 	NoScanHost             bool                           // 跳过主机存活检测
