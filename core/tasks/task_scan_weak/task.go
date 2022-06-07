@@ -42,10 +42,6 @@ func taskScanWeakGroup(req models.Params, item models.WaitScanWeak, wg *sync.Wai
 
 // 爆破
 func taskScanWeak(req models.Params, item models.WaitScanWeak, key string) {
-	if _, ok := req.UserPass[key]; !ok {
-		return
-	}
-
 	up := req.UserPass[key]
 	passList := utils.RemoveRepeatedElement(up["pass"])
 	userList := utils.RemoveRepeatedElement(up["user"])
@@ -196,7 +192,7 @@ func DoTaskScanWeak(req models.Params) {
 
 	service := req.ServiceScanWeak
 	if service == "" {
-		service = "全部"
+		service = "ssh,smb,snmp,sqlserver,mysql,mongodb,postgres,redis,ftp,clickhouse,elasticsearch"
 	}
 
 	fmt.Println(fmt.Sprintf(
@@ -208,9 +204,25 @@ func DoTaskScanWeak(req models.Params) {
 	var _time float32 = 0.0
 	start := time.Now()
 
-	var wg sync.WaitGroup
-	workerGroup := make(chan bool, req.GroupScanWeak)
+	// 排除协议
+	var waitWeak []models.WaitScanWeak
+	services := strings.Split(req.ServiceScanWeak, ",")
 	for _, item := range req.WaitWeak {
+		if utils.Contains(services, item.Service) < 0 {
+			continue
+		}
+		waitWeak = append(waitWeak, item)
+	}
+
+	var wg sync.WaitGroup
+
+	groupScanWeak := req.GroupScanWeak
+	if len(waitWeak) < groupScanWeak {
+		groupScanWeak = len(waitWeak)
+	}
+	workerGroup := make(chan bool, req.GroupScanWeak)
+
+	for _, item := range waitWeak {
 		taskScanWeakGroup(req, item, &wg, workerGroup, item.Service)
 	}
 
