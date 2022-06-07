@@ -182,6 +182,7 @@ func doTask(p models.Params) {
 
 	// 2.端口服务扫描
 	p.Urls, p.WaitVul, p.WaitWeak = task_scan_port.DoTaskScanPort(p)
+	p.IPs = nil
 
 	// 3.网站内容爬虫
 	p.Sites = task_scan_site.DoTaskScanSite(p)
