@@ -1,4 +1,2 @@
+root
 admin
-test
-system
-web

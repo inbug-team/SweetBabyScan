@@ -1,6 +1,9 @@
 anonymous
-administrator
 ftp
-test
 admin
+www
 web
+root
+db
+wwwroot
+data

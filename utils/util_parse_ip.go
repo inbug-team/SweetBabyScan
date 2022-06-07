@@ -22,7 +22,7 @@ var ParseIPErr = errors.New("主机解析错误，格式：\n" +
 	"192.168.1.1-255")
 
 // 获取IP列表
-func GetIps(ipStr, ipStrBlack string) (ips []string) {
+func GetIps(ipStr, ipStrBlack string) (ips []int) {
 	whiteList, err := ParseIP(ipStr)
 	if err != nil {
 		return ips
@@ -40,7 +40,7 @@ func GetIps(ipStr, ipStrBlack string) (ips []string) {
 }
 
 // 解析IP字符串
-func ParseIP(ip string) (hosts []string, err error) {
+func ParseIP(ip string) (hosts []int, err error) {
 
 	if ip != "" {
 		hosts, err = ParseIPs(ip)
@@ -51,7 +51,7 @@ func ParseIP(ip string) (hosts []string, err error) {
 }
 
 // 解析多个IP
-func ParseIPs(ip string) (hosts []string, err error) {
+func ParseIPs(ip string) (hosts []int, err error) {
 	ip = strings.ReplaceAll(ip, "，", ",")
 	ip = strings.ReplaceAll(ip, ";", ",")
 	ip = strings.ReplaceAll(ip, "；", ",")
@@ -67,9 +67,9 @@ func ParseIPs(ip string) (hosts []string, err error) {
 }
 
 // IP分隔
-func IPSplit(ip, sep string) (hosts []string, err error) {
+func IPSplit(ip, sep string) (hosts []int, err error) {
 	IPList := strings.Split(ip, sep)
-	var ips []string
+	var ips []int
 	for _, ip := range IPList {
 		ips, err = ParseIPone(ip)
 		if err != nil {
@@ -81,7 +81,7 @@ func IPSplit(ip, sep string) (hosts []string, err error) {
 }
 
 // 解析单个IP
-func ParseIPone(ip string) ([]string, error) {
+func ParseIPone(ip string) ([]int, error) {
 	reg := regexp.MustCompile(`[a-zA-Z]+`)
 	switch {
 	case strings.Contains(ip, "/"):
@@ -95,21 +95,21 @@ func ParseIPone(ip string) ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
-		return []string{ip}, nil
+		return []int{IpStringToInt(ip)}, nil
 	default:
 		testIP := net.ParseIP(ip)
 		if testIP == nil {
 			return nil, ParseIPErr
 		}
-		return []string{ip}, nil
+		return []int{IpStringToInt(ip)}, nil
 	}
 }
 
 //解析IP段，例如：192.168.111.1-255,192.168.111.1-192.168.112.255
-func ParseIPC(ip string) ([]string, error) {
+func ParseIPC(ip string) ([]int, error) {
 	IPRange := strings.Split(ip, "-")
 	testIP := net.ParseIP(IPRange[0])
-	var AllIP []string
+	var AllIP []int
 	if len(IPRange[1]) < 4 {
 		Range, err := strconv.Atoi(IPRange[1])
 		if testIP == nil || Range > 255 || err != nil {
@@ -123,7 +123,7 @@ func ParseIPC(ip string) ([]string, error) {
 			return nil, ParseIPErr
 		}
 		for i := ip1; i <= ip2; i++ {
-			AllIP = append(AllIP, PrefixIP+"."+strconv.Itoa(i))
+			AllIP = append(AllIP, IpStringToInt(PrefixIP+"."+strconv.Itoa(i)))
 		}
 	} else {
 		SplitIP1 := strings.Split(IPRange[0], ".")
@@ -144,7 +144,7 @@ func ParseIPC(ip string) ([]string, error) {
 		endNum := end[0]<<24 | end[1]<<16 | end[2]<<8 | end[3]
 		for num := startNum; num <= endNum; num++ {
 			ip := strconv.Itoa((num>>24)&0xff) + "." + strconv.Itoa((num>>16)&0xff) + "." + strconv.Itoa((num>>8)&0xff) + "." + strconv.Itoa((num)&0xff)
-			AllIP = append(AllIP, ip)
+			AllIP = append(AllIP, IpStringToInt(ip))
 		}
 	}
 
@@ -153,9 +153,9 @@ func ParseIPC(ip string) ([]string, error) {
 }
 
 // 去重
-func RemoveDuplicate(old []string) []string {
-	result := make([]string, 0, len(old))
-	temp := map[string]struct{}{}
+func RemoveDuplicate(old []int) []int {
+	result := make([]int, 0, len(old))
+	temp := map[int]struct{}{}
 	for _, item := range old {
 		if _, ok := temp[item]; !ok {
 			temp[item] = struct{}{}

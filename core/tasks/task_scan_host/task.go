@@ -17,7 +17,7 @@ type taskScanHost struct {
 	params models.Params
 }
 
-var ip []string
+var ip []int
 
 var (
 	ipRange = map[string]int{}
@@ -26,7 +26,7 @@ var (
 // 1.迭代方法
 func (t *taskScanHost) doIter(wg *sync.WaitGroup, worker chan bool, result chan utils.CountResult, task utils.Task, data ...interface{}) {
 	items := data[0]
-	for _, item := range items.([]string) {
+	for _, item := range items.([]int) {
 		wg.Add(1)
 		worker <- true
 		go task(wg, worker, result, item)
@@ -36,22 +36,23 @@ func (t *taskScanHost) doIter(wg *sync.WaitGroup, worker chan bool, result chan 
 // 2.任务方法
 func (t *taskScanHost) doTask(wg *sync.WaitGroup, worker chan bool, result chan utils.CountResult, data ...interface{}) {
 	defer wg.Done()
-	item := data[0].(string)
+	item := data[0].(int)
 	status := false
 	methodAlive := t.params.MethodScanHost
 	mac := ""
+	_ip := utils.IpIntToString(item)
 	if methodAlive == "ICMP" {
-		status = plugin_scan_host.ScanHostByICMP(item, time.Duration(t.params.TimeOutScanHost)*time.Second)
+		status = plugin_scan_host.ScanHostByICMP(_ip, time.Duration(t.params.TimeOutScanHost)*time.Second)
 	} else if methodAlive == "PING" {
-		status = plugin_scan_host.ScanHostByPing(item)
+		status = plugin_scan_host.ScanHostByPing(_ip)
 	}
 	if status {
 		result <- utils.CountResult{
 			Count: 1,
 			Result: models.ScanHost{
-				Ip:      item,
-				IpNum:   uint(utils.InetAtoN(item)),
-				IpRange: strings.Join(strings.Split(item, ".")[0:3], ".") + ".1/24",
+				Ip:      _ip,
+				IpNum:   item,
+				IpRange: strings.Join(strings.Split(_ip, ".")[0:3], ".") + ".1/24",
 				Mac:     mac,
 			},
 		}
@@ -72,7 +73,7 @@ func (t *taskScanHost) doDone(item interface{}) error {
 	} else {
 		ipRange[result.IpRange] = 1
 	}
-	ip = append(ip, result.Ip)
+	ip = append(ip, result.IpNum)
 
 	if t.params.IsLog {
 		fmt.Println(fmt.Sprintf("[+]发现存活主机 %s", result.Ip))
@@ -87,7 +88,7 @@ func (t *taskScanHost) doAfter(data uint) {
 }
 
 // 执行并发存活检测
-func DoTaskScanHost(req models.Params) []string {
+func DoTaskScanHost(req models.Params) []int {
 	task := taskScanHost{params: req}
 
 	totalTask := uint(len(req.IPs))
@@ -137,7 +138,7 @@ func DoTaskScanHost(req models.Params) []string {
 			saveIps := map[string]interface{}{}
 			indexIps := 2
 			for _, v := range ip {
-				saveIps[fmt.Sprintf("A%d", indexIps)] = v
+				saveIps[fmt.Sprintf("A%d", indexIps)] = utils.IpIntToString(v)
 				indexIps++
 			}
 			utils.SaveData(req.SaveFile, "存活IP", saveIps)

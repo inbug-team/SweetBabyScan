@@ -34,7 +34,7 @@ func power(x int, n int) uint {
 
 // 获取网段的IP地址列表
 // 返回IP列表+错误信息
-func (p *IpRange) IpRangeToIpList(Ipaddr string) ([]string, error) {
+func (p *IpRange) IpRangeToIpList(Ipaddr string) ([]int, error) {
 	ipRangeList := strings.Split(Ipaddr, "/")
 	if len(ipRangeList) != 2 {
 		return nil, errors.New("IP地址格式错误！")
@@ -44,7 +44,7 @@ func (p *IpRange) IpRangeToIpList(Ipaddr string) ([]string, error) {
 	if err != nil {
 		return nil, errors.New("子网掩码转整型错误！")
 	}
-	var result []string
+	var result []int
 	if mask > 32 || mask < 0 {
 		return nil, errors.New("子网掩码超出范围！")
 	}
@@ -65,12 +65,13 @@ func (p *IpRange) IpRangeToIpList(Ipaddr string) ([]string, error) {
 		}
 	}
 
-	ipInt := p.IpStringToInt(ip)
+	ipInt := IpStringToInt(ip)
 	ipIntStart := uint(ipInt) & maskMax
 	ipIntEnd := uint(ipInt) | maskMin
 
 	for i := ipIntStart; i <= ipIntEnd; i++ {
-		result = append(result, p.IpIntToString(int(i)))
+		//result = append(result, p.IpIntToString(int(i)))
+		result = append(result, int(i))
 	}
 
 	return result, nil
@@ -78,7 +79,7 @@ func (p *IpRange) IpRangeToIpList(Ipaddr string) ([]string, error) {
 
 // 将IP字符串转成数值类型
 // 返回数值类型IP
-func (p *IpRange) IpStringToInt(ipString string) int {
+func IpStringToInt(ipString string) int {
 	ipSegments := strings.Split(ipString, ".")
 	var ipInt = 0
 	var pos uint = 24
@@ -93,7 +94,7 @@ func (p *IpRange) IpStringToInt(ipString string) int {
 
 // 将IP数值转成字符串类型
 // 返回字符类型IP
-func (p *IpRange) IpIntToString(ipInt int) string {
+func IpIntToString(ipInt int) string {
 	ipSegments := make([]string, 4)
 	var length = len(ipSegments)
 	buffer := bytes.NewBufferString("")

@@ -7,8 +7,8 @@ import (
 )
 
 // 求并集
-func Union(slice1, slice2 []string) []string {
-	m := make(map[string]int)
+func Union(slice1, slice2 []int) []int {
+	m := make(map[int]int)
 	for _, v := range slice1 {
 		m[v]++
 	}
@@ -23,9 +23,9 @@ func Union(slice1, slice2 []string) []string {
 }
 
 // 求交集
-func Intersect(slice1, slice2 []string) []string {
-	m := make(map[string]int)
-	nn := make([]string, 0)
+func Intersect(slice1, slice2 []int) []int {
+	m := make(map[int]int)
+	nn := make([]int, 0)
 	for _, v := range slice1 {
 		m[v]++
 	}
@@ -40,9 +40,9 @@ func Intersect(slice1, slice2 []string) []string {
 }
 
 // 求差集
-func Difference(slice1, slice2 []string) []string {
-	m := make(map[string]int)
-	nn := make([]string, 0)
+func Difference(slice1, slice2 []int) []int {
+	m := make(map[int]int)
+	nn := make([]int, 0)
 	inter := Intersect(slice1, slice2)
 	for _, v := range inter {
 		m[v]++
@@ -58,7 +58,7 @@ func Difference(slice1, slice2 []string) []string {
 }
 
 // 乱序
-func Shuffle(slice []string) {
+func Shuffle(slice []int) {
 	r := rand.New(rand.NewSource(time.Now().Unix()))
 	for len(slice) > 0 {
 		n := len(slice)

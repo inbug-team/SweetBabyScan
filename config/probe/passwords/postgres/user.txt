@@ -1,4 +1,2 @@
 postgres
-test
 admin
-web

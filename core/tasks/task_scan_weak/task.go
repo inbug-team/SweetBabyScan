@@ -53,7 +53,7 @@ func taskScanWeak(req models.Params, item models.WaitScanWeak, key string) {
 	if totalTask <= workerNumber {
 		workerNumber = totalTask
 	}
-	worker := make(chan bool, totalTask)
+	worker := make(chan bool, workerNumber)
 	workerResult := make(chan utils.CountResult, workerNumber)
 
 	go func() {

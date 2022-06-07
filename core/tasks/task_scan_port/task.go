@@ -30,7 +30,7 @@ var ipRange = map[string]int{}
 // 1.迭代方法
 func (t *taskScanPort) doIter(wg *sync.WaitGroup, worker chan bool, result chan utils.CountResult, task utils.Task, data ...interface{}) {
 	_ips, _ports, _protocols := data[0], data[1], data[2]
-	for _, ip := range _ips.([]string) {
+	for _, ip := range _ips.([]int) {
 		for _, port := range _ports.([]uint) {
 			for _, protocol := range _protocols.([]string) {
 				wg.Add(1)
@@ -46,7 +46,7 @@ func (t *taskScanPort) doTask(wg *sync.WaitGroup, worker chan bool, result chan 
 	defer wg.Done()
 	ip, port, protocol := data[0], data[1], data[2]
 	target := plugin_scan_port.Target{
-		IP:       ip.(string),
+		IP:       utils.IpIntToString(ip.(int)),
 		Port:     port.(uint),
 		Protocol: protocol.(string),
 	}
@@ -106,7 +106,7 @@ func (t *taskScanPort) doDone(item interface{}) error {
 
 	data := models.ScanPort{
 		Ip:              result.Target.IP,
-		IpNum:           uint(utils.InetAtoN(result.Target.IP)),
+		IpNum:           utils.IpStringToInt(result.Target.IP),
 		IpRange:         strings.Join(strings.Split(result.Target.IP, ".")[0:3], ".") + ".1/24",
 		Port:            fmt.Sprintf(`%d`, result.Target.Port),
 		Protocol:        result.Target.Protocol,

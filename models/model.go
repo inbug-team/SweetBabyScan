@@ -98,7 +98,7 @@ type Params struct {
 	WorkerScanHost         int                            // 存活并发
 	WorkerScanPort         int                            // 存活并发
 	WorkerScanSite         int                            // 爬虫并发
-	IPs                    []string                       // IP集合
+	IPs                    []int                          // IP集合
 	Urls                   []string                       // URL链接
 	Ports                  []uint                         // 端口范围
 	Protocols              []string                       // 协议范围
@@ -143,7 +143,7 @@ type Params struct {
 // 主机存活结构
 type ScanHost struct {
 	Ip      string `json:"ip"`       // ip
-	IpNum   uint   `json:"ip_num"`   // ip数值
+	IpNum   int    `json:"ip_num"`   // ip数值
 	IpRange string `json:"ip_range"` // ip网段
 	Mac     string `json:"mac"`      // mac地址
 }
@@ -151,7 +151,7 @@ type ScanHost struct {
 // 端口服务结构
 type ScanPort struct {
 	Ip              string `json:"ip"`               // ip
-	IpNum           uint   `json:"ip_num"`           // ip数值
+	IpNum           int    `json:"ip_num"`           // ip数值
 	IpRange         string `json:"ip_range"`         // ip网段
 	Port            string `json:"port"`             // 端口
 	Protocol        string `json:"protocol"`         // 协议
