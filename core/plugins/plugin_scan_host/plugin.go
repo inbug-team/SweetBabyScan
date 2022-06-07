@@ -1,16 +1,9 @@
 package plugin_scan_host
 
 import (
-	"bytes"
-	"fmt"
 	"net"
-	"os/exec"
-	"runtime"
-	"strings"
 	"time"
 )
-
-var OS = runtime.GOOS
 
 // ICMP检测存活
 func ScanHostByICMP(host string, timeout time.Duration) bool {
@@ -62,43 +55,6 @@ func ScanHostByICMP(host string, timeout time.Duration) bool {
 	}
 
 	return true
-}
-
-// PING检测存活
-func ScanHostByPing(host string) bool {
-	var command *exec.Cmd
-	env := "/bin/bash"
-	if OS == "windows" {
-		command = exec.Command("cmd", "/c", fmt.Sprintf("ping -n 1 -w 1 %s && echo true || echo false", host))
-		//command.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
-	} else if OS == "linux" {
-		command = exec.Command(env, "-c", fmt.Sprintf("ping -c 1 -w 1 %s >/dev/null && echo true || echo false", host))
-	} else if OS == "darwin" {
-		command = exec.Command(env, "-c", fmt.Sprintf("ping -c 1 -W 1 %s >/dev/null && echo true || echo false", host))
-	}
-	outInfo := bytes.Buffer{}
-	if command == nil {
-		return false
-	}
-	command.Stdout = &outInfo
-	err := command.Start()
-	if err != nil {
-		return false
-	}
-	if err = command.Wait(); err != nil {
-		return false
-	} else {
-		if strings.Contains(outInfo.String(), "true") {
-			return true
-		} else {
-			return false
-		}
-	}
-}
-
-// ARP存活检测
-func ScanHostByARP(host, iFace string, timeout time.Duration) (bool, string) {
-	return true, ""
 }
 
 func checkSum(msg []byte) uint16 {
