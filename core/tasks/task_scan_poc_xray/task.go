@@ -94,7 +94,7 @@ func (t *taskScanPocXray) doDone(item interface{}) error {
 	if t.params.IsLog {
 		fmt.Println(
 			fmt.Sprintf(
-				"[+][PocXray]发现web漏洞 %s <[Title:%s] [Name:%s]",
+				"[+][PocXray]发现web漏洞 %s <[Title:%s] [Name:%s]>",
 				result.Url,
 				result.Title,
 				result.PocName,
