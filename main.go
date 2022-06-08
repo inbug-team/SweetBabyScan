@@ -191,7 +191,7 @@ func doTask(p models.Params) {
 	if !p.NoScanPoc {
 		// 加载POC等级
 		if p.FilterVulLevel == "" {
-			p.FilterVulLevel = "critical,high"
+			p.FilterVulLevel = "critical,high,medium"
 		} else if p.FilterVulLevel == "all" {
 			p.FilterVulLevel = "critical,high,medium,low,info,unknown"
 		}
