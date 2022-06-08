@@ -3,6 +3,7 @@ package task_scan_weak
 import (
 	"fmt"
 	"github.com/cheggaaa/pb/v3"
+	"github.com/inbug-team/SweetBabyScan/config"
 	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_weak"
 	"github.com/inbug-team/SweetBabyScan/models"
 	"github.com/inbug-team/SweetBabyScan/utils"
@@ -15,19 +16,6 @@ import (
 var index = 2
 var saveData = map[string]interface{}{}
 var lock sync.Mutex
-var workerMap = map[string]int{
-	"ssh":           1,
-	"smb":           1,
-	"snmp":          1,
-	"sqlserver":     4,
-	"mysql":         4,
-	"mongodb":       4,
-	"postgres":      4,
-	"redis":         6,
-	"ftp":           1,
-	"clickhouse":    4,
-	"elasticsearch": 4,
-}
 
 // 爆破分组
 func taskScanWeakGroup(req models.Params, item models.WaitScanWeak, wg *sync.WaitGroup, workerGroup chan bool, key string) {
@@ -58,7 +46,7 @@ func taskScanWeak(req models.Params, item models.WaitScanWeak, key string) {
 	bar.Set("alive", fmt.Sprintf("%s:%s<%s>[+](0)", item.Ip, item.Port, item.Service))
 
 	var wg sync.WaitGroup
-	workerNumber := uint(workerMap[key])
+	workerNumber := uint(config.WorkerMap[key])
 	if totalTask <= workerNumber {
 		workerNumber = totalTask
 	}
@@ -192,7 +180,7 @@ func DoTaskScanWeak(req models.Params) {
 
 	service := req.ServiceScanWeak
 	if service == "" {
-		service = "ssh,smb,snmp,sqlserver,mysql,mongodb,postgres,redis,ftp,clickhouse,elasticsearch"
+		service = config.Service
 	}
 
 	fmt.Println(fmt.Sprintf(
@@ -206,7 +194,7 @@ func DoTaskScanWeak(req models.Params) {
 
 	// 排除协议
 	var waitWeak []models.WaitScanWeak
-	services := strings.Split(req.ServiceScanWeak, ",")
+	services := strings.Split(service, ",")
 	for _, item := range req.WaitWeak {
 		if utils.Contains(services, item.Service) < 0 {
 			continue

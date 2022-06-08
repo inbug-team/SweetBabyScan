@@ -2,6 +2,7 @@ package task_scan_port
 
 import (
 	"fmt"
+	"github.com/inbug-team/SweetBabyScan/config"
 	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_port"
 	"github.com/inbug-team/SweetBabyScan/models"
 	"github.com/inbug-team/SweetBabyScan/utils"
@@ -150,12 +151,7 @@ func (t *taskScanPort) doDone(item interface{}) error {
 		})
 	}
 
-	if utils.Contains([]string{
-		"redis", "ssh", "mongodb",
-		"mysql", "sqlserver", "ftp",
-		"postgres", "clickhouse", "elasticsearch",
-		"snmp", "smb",
-	}, service) >= 0 {
+	if utils.Contains(strings.Split(config.Service, ","), service) >= 0 {
 		weakData = append(weakData, models.WaitScanWeak{
 			Ip:       data.Ip,
 			Port:     data.Port,
