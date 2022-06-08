@@ -141,7 +141,7 @@ func DoTaskScanHost(req models.Params) []int {
 				saveIps[fmt.Sprintf("A%d", indexIps)] = utils.IpIntToString(v)
 				indexIps++
 			}
-			utils.SaveData(req.SaveFile, "存活IP", saveIps)
+			utils.SaveData(req.OutputExcel, "存活IP", saveIps)
 
 			// 保存数据-IP段
 			indexIpSegments := 2
@@ -151,7 +151,7 @@ func DoTaskScanHost(req models.Params) []int {
 				saveIpSegments[fmt.Sprintf("B%d", indexIpSegments)] = v.Value
 				indexIpSegments++
 			}
-			utils.SaveData(req.SaveFile, "IP段", saveIpSegments)
+			utils.SaveData(req.OutputExcel, "IP段", saveIpSegments)
 		},
 		req.IPs,
 	)

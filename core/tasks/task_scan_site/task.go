@@ -118,7 +118,7 @@ func DoTaskScanSite(req models.Params) []models.ScanSite {
 		"完成扫描网站CMS",
 		func() {
 			// 保存数据-WEB信息
-			utils.SaveData(req.SaveFile, "WEB", saveWeb)
+			utils.SaveData(req.OutputExcel, "WEB", saveWeb)
 		},
 		req.Urls,
 	)

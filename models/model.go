@@ -89,12 +89,13 @@ type IpRangeStruct struct {
 
 // 命令行参数
 type Params struct {
-	SaveFile               string                         // 保存文件
+	OutputExcel            string                         // 保存文件-excel
+	OutputTxt              string                         // 保存文件-txt
 	Host                   string                         // 检测网段
 	Port                   string                         // 端口
 	Protocol               string                         // 协议
 	HostBlack              string                         // 排除网段
-	MethodScanHost         string                         // 验存方式：PING、ICMP、ARP
+	MethodScanHost         string                         // 验存方式：PING、ICMP
 	WorkerScanHost         int                            // 存活并发
 	WorkerScanPort         int                            // 存活并发
 	WorkerScanSite         int                            // 爬虫并发
@@ -128,6 +129,8 @@ type Params struct {
 	UserPass               map[string]map[string][]string // 弱口令字典
 	GroupScanWeak          int                            // 爆破分组
 	TimeOutScanWeak        int                            // 爆破超时
+	WorkerScanWeak         string                         // 爆破并发
+	WorkerScanWeakMap      map[string]int                 // 爆破并发字典
 	NoScanHost             bool                           // 跳过主机存活检测
 	NoScanWeak             bool                           // 跳过弱口令爆破
 	NoScanVul              bool                           // 跳过高危漏洞探测
@@ -137,6 +140,11 @@ type Params struct {
 	APass                  string                         // 追加密码字典
 	WUser                  string                         // 覆盖账号字典
 	WPass                  string                         // 覆盖密码字典
+	IsAPass                bool                           // 是否追加弱口令生成器
+	IsWPass                bool                           // 是否覆盖弱口令生成器
+	PasswordPrefix         string                         // 密码前缀
+	PasswordCenter         string                         // 密码中位
+	PasswordSuffix         string                         // 密码后缀
 }
 
 // 主机存活结构

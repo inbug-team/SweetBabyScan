@@ -140,7 +140,7 @@ func DoTaskScanPocNuclei(req models.Params) int {
 		"完成PocNuclei漏洞检测",
 		func() {
 			// 保存数据-漏洞信息
-			utils.SaveData(req.SaveFile, "漏洞信息", savePocs)
+			utils.SaveData(req.OutputExcel, "漏洞信息", savePocs)
 		},
 		req.Sites,
 		req.PocNuclei,

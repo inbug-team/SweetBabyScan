@@ -256,9 +256,9 @@ func DoTaskScanVul(req models.Params) {
 		"完成系统高危漏洞+网卡识别+域控探测",
 		func() {
 			// 保存数据
-			utils.SaveData(req.SaveFile, "网卡信息", saveNet)
-			utils.SaveData(req.SaveFile, "域控识别", saveNetBios)
-			utils.SaveData(req.SaveFile, "高危系统漏洞", saveVul)
+			utils.SaveData(req.OutputExcel, "网卡信息", saveNet)
+			utils.SaveData(req.OutputExcel, "域控识别", saveNetBios)
+			utils.SaveData(req.OutputExcel, "高危系统漏洞", saveVul)
 		},
 		req.WaitVul,
 	)

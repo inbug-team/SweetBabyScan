@@ -135,7 +135,7 @@ func DoTaskScanPocXray(req models.Params, i int) {
 		"完成PocXray漏洞检测",
 		func() {
 			// 保存数据-漏洞信息
-			utils.SaveData(req.SaveFile, "漏洞信息", savePocs)
+			utils.SaveData(req.OutputExcel, "漏洞信息", savePocs)
 		},
 		req.Sites,
 		req.PocXray,

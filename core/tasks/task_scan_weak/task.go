@@ -184,8 +184,9 @@ func DoTaskScanWeak(req models.Params) {
 	}
 
 	fmt.Println(fmt.Sprintf(
-		"开始弱口令爆破\r\n\r\n> 爆破协议：%s\r\n> 爆破分组：%d\r\n",
+		"开始弱口令爆破\r\n\r\n> 爆破协议：%s\r\n> 爆破并发：%s\r\n> 爆破分组：%d\r\n",
 		service,
+		req.WorkerScanWeak,
 		req.GroupScanWeak,
 	))
 
@@ -218,7 +219,7 @@ func DoTaskScanWeak(req models.Params) {
 	close(workerGroup)
 
 	// 保存数据
-	utils.SaveData(req.SaveFile, "弱口令", saveData)
+	utils.SaveData(req.OutputExcel, "弱口令", saveData)
 
 	_time = float32(time.Since(start).Seconds())
 	fmt.Println(fmt.Sprintf(`完成弱口令爆破，执行总耗时：%f秒`, _time))

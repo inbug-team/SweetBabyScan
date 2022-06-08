@@ -46,18 +46,33 @@ func (t *taskScanPort) doIter(wg *sync.WaitGroup, worker chan bool, result chan 
 func (t *taskScanPort) doTask(wg *sync.WaitGroup, worker chan bool, result chan utils.CountResult, data ...interface{}) {
 	defer wg.Done()
 	ip, port, protocol := data[0], data[1], data[2]
-	target := plugin_scan_port.Target{
-		IP:       utils.IpIntToString(ip.(int)),
-		Port:     port.(uint),
-		Protocol: protocol.(string),
-	}
-	res, err, status := t.scan.Explore(target, &t.config)
-	if err == nil && status {
-		result <- utils.CountResult{
-			Count:  1,
-			Result: res,
+
+	tmpResult := make(chan utils.CountResult, 1)
+
+	go func(_ip, _protocol string, _port uint) {
+		target := plugin_scan_port.Target{
+			IP:       _ip,
+			Port:     _port,
+			Protocol: _protocol,
 		}
-	} else {
+		res, err, status := t.scan.Explore(target, &t.config)
+		if err == nil && status {
+			tmpResult <- utils.CountResult{
+				Count:  1,
+				Result: res,
+			}
+		} else {
+			tmpResult <- utils.CountResult{
+				Count:  1,
+				Result: nil,
+			}
+		}
+	}(utils.IpIntToString(ip.(int)), protocol.(string), port.(uint))
+
+	select {
+	case res := <-tmpResult:
+		result <- res
+	case <-time.After(time.Duration(t.params.TimeOutScanPortConnect+t.params.TimeOutScanPortSend+t.params.TimeOutScanPortRead) * time.Second):
 		result <- utils.CountResult{
 			Count:  1,
 			Result: nil,
@@ -229,7 +244,7 @@ func DoTaskScanPort(req models.Params) ([]string, []models.WaitScanVul, []models
 		"完成端口服务扫描",
 		func() {
 			// 保存数据-端口信息
-			utils.SaveData(req.SaveFile, "端口信息", savePorts)
+			utils.SaveData(req.OutputExcel, "端口信息", savePorts)
 
 			if req.NoScanHost {
 				// 保存数据-IP段
@@ -247,7 +262,7 @@ func DoTaskScanPort(req models.Params) ([]string, []models.WaitScanVul, []models
 					saveIpSegments[fmt.Sprintf("B%d", indexIpSegments)] = v.Value
 					indexIpSegments++
 				}
-				utils.SaveData(req.SaveFile, "IP段", saveIpSegments)
+				utils.SaveData(req.OutputExcel, "IP段", saveIpSegments)
 
 				// 保存数据-存活IP
 				saveIps := map[string]interface{}{}
@@ -256,7 +271,7 @@ func DoTaskScanPort(req models.Params) ([]string, []models.WaitScanVul, []models
 					saveIps[fmt.Sprintf("A%d", indexIps)] = v
 					indexIps++
 				}
-				utils.SaveData(req.SaveFile, "存活IP", saveIps)
+				utils.SaveData(req.OutputExcel, "存活IP", saveIps)
 			}
 
 		},

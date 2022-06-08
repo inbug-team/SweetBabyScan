@@ -23,6 +23,7 @@ import (
 	"github.com/projectdiscovery/goflags"
 	"os"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -118,16 +119,55 @@ func readFileArr(data string) (newData []string, status bool) {
 	return
 }
 
+// 弱口令生成器
+func generatePwd(pwdPrefix, pwdCenter, pwdSuffix string) (passwords []string) {
+	//fmt.Println("Password Generator 弱口令生成器，多个以空格隔开")
+	//reader := bufio.NewReader(os.Stdin)
+	//fmt.Print("[password prefix] > ")
+	//pwdPrefix, _ = reader.ReadString('\n')
+	//fmt.Print("[password center] > ")
+	//pwdCenter, _ = reader.ReadString('\n')
+	//fmt.Print("[password suffix] > ")
+	//pwdSuffix, _ = reader.ReadString('\n')
+
+	_pwdPrefix := strings.Split(strings.TrimSpace(pwdPrefix), ",")
+	_pwdCenter := strings.Split(strings.TrimSpace(pwdCenter), ",")
+	_pwdSuffix := strings.Split(strings.TrimSpace(pwdSuffix), ",")
+
+	if len(_pwdPrefix) == 0 {
+		_pwdPrefix = []string{""}
+	}
+	if len(_pwdCenter) == 0 {
+		_pwdCenter = []string{""}
+	}
+	if len(_pwdSuffix) == 0 {
+		_pwdSuffix = []string{""}
+	}
+
+	for _, v1 := range _pwdPrefix {
+		for _, v2 := range _pwdCenter {
+			for _, v3 := range _pwdSuffix {
+				passwords = append(passwords, fmt.Sprintf(`%s%s%s`, v1, v2, v3))
+			}
+		}
+	}
+	//fmt.Println(fmt.Sprintf("[password result] %d record:", len(passwords)))
+	//fmt.Println(strings.Join(passwords, " "))
+
+	passwords = utils.RemoveRepeatedElement(passwords)
+	return
+}
+
 // 执行任务
 func doTask(p models.Params) {
 	fmt.Println("Loading......，Please be patient !")
 	now := time.Now()
 
 	// 定义保存文件
-	if p.SaveFile == "" {
-		p.SaveFile = fmt.Sprintf("./result-%s.xlsx", now.Format("20060102150405"))
+	if p.OutputExcel == "" {
+		p.OutputExcel = fmt.Sprintf("./result-%s.xlsx", now.Format("20060102150405"))
 	} else {
-		if !strings.HasSuffix(strings.ToLower(p.SaveFile), ".xlsx") {
+		if !strings.HasSuffix(strings.ToLower(p.OutputExcel), ".xlsx") {
 			fmt.Println("[x]保存文件仅支持excel，必须以xlsx结尾")
 			os.Exit(0)
 		}
@@ -145,7 +185,7 @@ func doTask(p models.Params) {
 	p.IPs = utils.GetIps(p.Host, p.HostBlack)
 
 	// 初始化excel
-	utils.InitExcel(p.SaveFile, config.TmpExcel)
+	utils.InitExcel(p.OutputExcel, config.TmpExcel)
 
 	// 加载探针指纹
 	p.RuleProbe = config.RuleProbe
@@ -215,6 +255,15 @@ func doTask(p models.Params) {
 
 	// 7.弱口令爆破
 	if !p.NoScanWeak {
+		// 组装爆破并发
+		p.WorkerScanWeakMap = map[string]int{}
+		items := strings.Split(p.WorkerScanWeak, ",")
+		for _, v := range items {
+			val := strings.Split(v, ":")
+			value, _ := strconv.Atoi(val[1])
+			p.WorkerScanWeakMap[val[0]] = value
+		}
+
 		// 加载弱口令字典
 		p.UserPass = plugin_scan_weak.ParseUserPass(config.Passwords)
 
@@ -232,12 +281,12 @@ func doTask(p models.Params) {
 		if p.WUser != "" && p.WPass != "" {
 			if tmpUser, status := readFileArr(p.WUser); status {
 				for key := range p.UserPass {
-					p.UserPass[key]["user"] = tmpUser
+					p.UserPass[key]["user"] = utils.RemoveRepeatedElement(tmpUser)
 				}
 			}
 			if tmpPass, status := readFileArr(p.WPass); status {
 				for key := range p.UserPass {
-					p.UserPass[key]["pass"] = tmpPass
+					p.UserPass[key]["pass"] = utils.RemoveRepeatedElement(tmpPass)
 				}
 			}
 		}
@@ -246,20 +295,40 @@ func doTask(p models.Params) {
 		if p.AUser != "" && p.APass != "" {
 			if tmpUser, status := readFileArr(p.AUser); status {
 				for key := range p.UserPass {
-					p.UserPass[key]["user"] = append(p.UserPass[key]["user"], tmpUser...)
+					p.UserPass[key]["user"] = utils.RemoveRepeatedElement(append(p.UserPass[key]["user"], tmpUser...))
 				}
 			}
 			if tmpPass, status := readFileArr(p.APass); status {
 				for key := range p.UserPass {
-					p.UserPass[key]["pass"] = append(p.UserPass[key]["pass"], tmpPass...)
+					p.UserPass[key]["pass"] = utils.RemoveRepeatedElement(append(p.UserPass[key]["pass"], tmpPass...))
 				}
+			}
+		}
+
+		// 获取输入弱口令
+		var gPwd []string
+		if p.IsAPass || p.IsWPass {
+			gPwd = generatePwd(p.PasswordPrefix, p.PasswordCenter, p.PasswordSuffix)
+		}
+
+		// 追加弱口令生成器
+		if p.IsAPass {
+			for key := range p.UserPass {
+				p.UserPass[key]["pass"] = utils.RemoveRepeatedElement(append(p.UserPass[key]["pass"], gPwd...))
+			}
+		}
+
+		// 覆盖弱口令生成器
+		if p.IsWPass {
+			for key := range p.UserPass {
+				p.UserPass[key]["pass"] = gPwd
 			}
 		}
 
 		task_scan_weak.DoTaskScanWeak(p)
 	}
 
-	fmt.Println(fmt.Sprintf("Save File：%s", p.SaveFile))
+	fmt.Println(fmt.Sprintf("Output Excel File：%s", p.OutputExcel))
 }
 
 func main() {
@@ -290,7 +359,7 @@ func main() {
 
 	flagSet.BoolVarP(&p.IsLog, "isLog", "il", true, "是否显示日志")
 	flagSet.BoolVarP(&p.IsScreen, "isScreen", "is", isScreen, "是否启用截图")
-	flagSet.StringVarP(&p.SaveFile, "saveFile", "sf", "", "指定保存文件路径[以.xlsx结尾]")
+	flagSet.StringVarP(&p.OutputExcel, "outputExcel", "oe", "", "指定保存excel文件路径[以.xlsx结尾]")
 	flagSet.StringVarP(&p.Host, "host", "h", "192.168.0.0/16,172.16.0.0/12,10.0.0.0/8", "检测网段或者txt文件[以.txt结尾，一行一组回车换行]")
 	flagSet.StringVarP(&p.Port, "port", "p", "web", "端口范围：tiny[精简]、web[WEB服务]、normal[常用]、database[数据库]、caffe[咖啡厅/酒店/机场]、iot[物联网]、all[全部]、自定义")
 	flagSet.StringVarP(&p.Protocol, "protocol", "pt", "tcp+udp", "端口范围：tcp、udp、tcp+udp")
@@ -315,6 +384,7 @@ func main() {
 	flagSet.IntVarP(&p.TimeOutScanPocNuclei, "timeOutScanPocNuclei", "tspn", 6, "PocNuclei扫描超时")
 	flagSet.IntVarP(&p.WorkerScanPoc, "workerScanPoc", "wsPoc", 100, "Poc并发")
 	flagSet.IntVarP(&p.GroupScanWeak, "groupScanWeak", "gsw", 20, "爆破分组")
+	flagSet.StringVarP(&p.WorkerScanWeak, "workerScanWeak", "wsw", "ssh:1,smb:1,snmp:1,sqlserver:4,mysql:4,mongodb:4,postgres:4,redis:6,ftp:1,clickhouse:4,elasticsearch:4", "爆破并发，键值对形式，英文逗号分隔")
 	flagSet.IntVarP(&p.TimeOutScanWeak, "timeOutScanWeak", "tsw", 6, "爆破超时")
 	flagSet.BoolVarP(&p.NoScanHost, "noScanHost", "nsh", false, "跳过主机存活检测")
 	flagSet.BoolVarP(&p.NoScanWeak, "noScanWeak", "nsw", false, "跳过弱口令爆破")
@@ -325,7 +395,11 @@ func main() {
 	flagSet.StringVarP(&p.APass, "aPass", "ap", "", "追加弱口令密码字典[以.txt结尾]")
 	flagSet.StringVarP(&p.WUser, "wUser", "wu", "", "覆盖弱口令账号字典[以.txt结尾]")
 	flagSet.StringVarP(&p.WPass, "wPass", "wp", "", "覆盖弱口令密码字典[以.txt结尾]")
-
+	flagSet.BoolVarP(&p.IsAPass, "isAPass", "iap", false, "是否追加弱口令生成器")
+	flagSet.BoolVarP(&p.IsWPass, "isWPass", "iwp", false, "是否覆盖弱口令生成器")
+	flagSet.StringVarP(&p.PasswordPrefix, "passwordPrefix", "pp", "", "密码前缀，多个英文逗号分隔")
+	flagSet.StringVarP(&p.PasswordCenter, "passwordCenter", "pc", "", "密码中位，多个英文逗号分隔")
+	flagSet.StringVarP(&p.PasswordSuffix, "passwordSuffix", "ps", "", "密码后缀，多个英文逗号分隔")
 	flagSet.Parse()
 
 	plugin_scan_poc_nuclei.InitPocNucleiExecOpts(p.TimeOutScanPocNuclei)
