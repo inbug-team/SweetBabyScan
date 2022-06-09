@@ -113,7 +113,12 @@ GOOS=linux GOARCH=386 go build -ldflags="-s -w" -trimpath -o SbScan
 
 - 指定IP文件、密码文件、账号文件、输出excel文件、指定爆破协议
 
-> ./SbScan -h=ip.txt -wp=pass.txt -wu=user.txt -sf=test.xlsx -ssw=redis,ssh,mysql
+> ./SbScan -h=ip.txt -wp=pass.txt -wu=user.txt -oe=test.xlsx -ot=test.txt -ssw=redis,ssh,mysql
+
+- 弱口令生成器（覆盖模式iwp、追加模式iap）
+
+> ./SbScan -h=192.168.188.1/24 -iwp -pp=test,Test -pc=@ -ps=123
+
 
 ### 三、参数
 
@@ -128,9 +133,10 @@ Usage:
 Flags:
    -il, -isLog                         是否显示日志 (default true)
    -is, -isScreen                      是否启用截图 (default true)
-   -sf, -saveFile string               指定保存文件路径[以.xlsx结尾]
+   -oe, -outputExcel string            指定保存excel文件路径[以.xlsx结尾]
+   -ot, -outputTxt string              指定保存txt文件路径[以.txt结尾]
    -h, -host string                    检测网段或者txt文件[以.txt结尾，一行一组回车换行] (default "192.168.0.0/16,172.16.0.0/12,10.0.0.0/8")
-   -p, -port string                    端口范围：tiny[精简]、normal[常用]、database[数据库]、caffe[咖啡厅/酒店/机场]、iot[物联网]、all[全部]、自定义 (default "tiny")
+   -p, -port string                    端口范围：tiny[精简]、web[WEB服务]、normal[常用]、database[数据库]、caffe[咖啡厅/酒店/机场]、iot[物联网]、all[全部]、自定义 (default "web")
    -pt, -protocol string               端口范围：tcp、udp、tcp+udp (default "tcp+udp")
    -hb, -hostBlack string              排除网段
    -msh, -methodScanHost string        验存方式：PING、ICMP (default "PING")
@@ -141,8 +147,8 @@ Flags:
    -tspc, -timeOutScanPortConnect int  端口扫描连接超时 (default 3)
    -tsps, -timeOutScanPortSend int     端口扫描发包超时 (default 3)
    -tspr, -timeOutScanPortRead int     端口扫描读取超时 (default 3)
-   -inpo, -isNULLProbeOnly             使用空探针
-   -iuap, -isUseAllProbes              使用全量探针
+   -inpo, -isNULLProbeOnly             使用空探针，默认使用自适应探针
+   -iuap, -isUseAllProbes              使用全量探针，默认使用自适应探针
    -wss, -workerScanSite int           爬虫并发 (default 16)
    -tss, -timeOutScanSite int          爬虫超时 (default 3)
    -ts, -timeOutScreen int             截图超时 (default 60)
@@ -152,8 +158,8 @@ Flags:
    -fvl, -filterVulLevel string        筛选POC严重等级：critical[严重] > high[高危] > medium[中危] > low[低危] > info[信息]、unknown[未知]、all[全部]，多个关键字英文逗号隔开
    -tspn, -timeOutScanPocNuclei int    PocNuclei扫描超时 (default 6)
    -wsPoc, -workerScanPoc int          Poc并发 (default 100)
-   -wsw, -workerScanWeak int           爆破并发 (default 6)
-   -gsw, -groupScanWeak int            爆破分组 (default 10)
+   -gsw, -groupScanWeak int            爆破分组 (default 20)
+   -wsw, -workerScanWeak string        爆破并发，键值对形式，英文逗号分隔 (default "ssh:1,smb:1,snmp:1,sqlserver:4,mysql:4,mongodb:4,postgres:4,redis:6,ftp:1,clickhouh:4")
    -tsw, -timeOutScanWeak int          爆破超时 (default 6)
    -nsh, -noScanHost                   跳过主机存活检测
    -nsw, -noScanWeak                   跳过弱口令爆破
@@ -164,6 +170,11 @@ Flags:
    -ap, -aPass string                  追加弱口令密码字典[以.txt结尾]
    -wu, -wUser string                  覆盖弱口令账号字典[以.txt结尾]
    -wp, -wPass string                  覆盖弱口令密码字典[以.txt结尾]
+   -iap, -isAPass                      是否追加弱口令生成器
+   -iwp, -isWPass                      是否覆盖弱口令生成器
+   -pp, -passwordPrefix string         密码前缀，多个英文逗号分隔
+   -pc, -passwordCenter string         密码中位，多个英文逗号分隔
+   -ps, -passwordSuffix string         密码后缀，多个英文逗号分隔
 ```
 
 ### 四、更新日志

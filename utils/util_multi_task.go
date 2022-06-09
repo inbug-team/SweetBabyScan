@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/cheggaaa/pb/v3"
 	"github.com/inbug-team/SweetBabyScan/models"
+	"runtime"
 	"sync"
 	"time"
 )
@@ -40,6 +41,8 @@ func MultiTask(
 	printResult PrintResult,
 	data ...interface{},
 ) float32 {
+	runtime.GOMAXPROCS(runtime.NumCPU())
+
 	var _time float32 = 0.0
 	if totalTask == 0 {
 		return _time
