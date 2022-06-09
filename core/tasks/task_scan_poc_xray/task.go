@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/inbug-team/SweetBabyScan/config"
 	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_poc_xray"
+	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_site"
 	"github.com/inbug-team/SweetBabyScan/models"
 	"github.com/inbug-team/SweetBabyScan/utils"
 	"math"
@@ -37,7 +38,11 @@ func (t *taskScanPocXray) doTask(wg *sync.WaitGroup, worker chan bool, result ch
 	defer wg.Done()
 	item, poc := data[0].(models.ScanSite), data[1].(models.DataPocXray)
 	if item.Link != "" {
-		oReq, _ := http.NewRequest("GET", item.Link, nil)
+		_link := item.Link
+		if item.LinkRedirect != "" {
+			_link = plugin_scan_site.GetUrl(item.LinkRedirect)
+		}
+		oReq, _ := http.NewRequest("GET", _link, nil)
 		oReq.Header.Set("User-agent", config.GetUserAgent())
 
 		isVul, err, _ := plugin_scan_poc_xray.ScanPocXray(oReq, &poc)

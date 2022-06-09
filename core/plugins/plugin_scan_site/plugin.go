@@ -85,6 +85,17 @@ func (a TLS) IsEmpty() bool {
 	return reflect.DeepEqual(a, TLS{})
 }
 
+func GetUrl(link string) string {
+	_url, err := netUrl.Parse(link)
+	if err != nil {
+		return ""
+	}
+	if _url == nil {
+		return ""
+	}
+	return fmt.Sprintf("%s://%s", _url.Scheme, _url.Host)
+}
+
 // 转化字符集
 func ConvertCharset(dataByte []byte) string {
 	sourceCode := string(dataByte)

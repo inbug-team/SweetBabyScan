@@ -3,6 +3,7 @@ package task_scan_poc_nuclei
 import (
 	"fmt"
 	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_poc_nuclei"
+	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_site"
 	"github.com/inbug-team/SweetBabyScan/models"
 	"github.com/inbug-team/SweetBabyScan/utils"
 	"math"
@@ -38,7 +39,11 @@ func (t *taskScanPocNuclei) doTask(wg *sync.WaitGroup, worker chan bool, result 
 	tmpResult := make(chan utils.CountResult, 1)
 
 	go func(_item models.ScanSite, _poc models.DataPocNuclei) {
-		isVul, packetSend, packetRecv, err := plugin_scan_poc_nuclei.ScanPocNuclei(_item.Link, &_poc)
+		_link := _item.Link
+		if _item.LinkRedirect != "" {
+			_link = plugin_scan_site.GetUrl(_item.LinkRedirect)
+		}
+		isVul, packetSend, packetRecv, err := plugin_scan_poc_nuclei.ScanPocNuclei(_link, &_poc)
 		if err == nil && isVul {
 			tmpResult <- utils.CountResult{
 				Count: 1,
