@@ -28,6 +28,7 @@ var savePorts = map[string]interface{}{}
 var savePortTxt = []string{"*****************<Port Info>*****************\r\n"}
 var aliveIps = map[string]string{}
 var ipRange = map[string]int{}
+var serviceConfig string
 
 // 1.迭代方法
 func (t *taskScanPort) doIter(wg *sync.WaitGroup, worker chan bool, result chan utils.CountResult, task utils.Task, data ...interface{}) {
@@ -162,7 +163,7 @@ func (t *taskScanPort) doDone(item interface{}) error {
 		})
 	}
 
-	if utils.Contains(strings.Split(config.Service, ","), service) >= 0 {
+	if utils.Contains(strings.Split(serviceConfig, ","), service) >= 0 {
 		weakData = append(weakData, models.WaitScanWeak{
 			Ip:       data.Ip,
 			Port:     data.Port,
@@ -201,6 +202,10 @@ func DoTaskScanPort(req models.Params) ([]string, []models.WaitScanVul, []models
 		return []string{}, []models.WaitScanVul{}, []models.WaitScanWeak{}
 	}
 
+	serviceConfig = req.ServiceScanWeak
+	if serviceConfig == "" {
+		serviceConfig = config.Service
+	}
 	var s plugin_scan_port.ScanPort
 	s.InitContent(req.RuleProbe)
 

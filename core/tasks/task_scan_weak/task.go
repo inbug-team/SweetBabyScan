@@ -206,25 +206,15 @@ func DoTaskScanWeak(req models.Params) {
 	var _time float32 = 0.0
 	start := time.Now()
 
-	// 排除协议
-	var waitWeak []models.WaitScanWeak
-	services := strings.Split(service, ",")
-	for _, item := range req.WaitWeak {
-		if utils.Contains(services, item.Service) < 0 {
-			continue
-		}
-		waitWeak = append(waitWeak, item)
-	}
-
 	var wg sync.WaitGroup
 
 	groupScanWeak := req.GroupScanWeak
-	if len(waitWeak) < groupScanWeak {
-		groupScanWeak = len(waitWeak)
+	if len(req.WaitWeak) < groupScanWeak {
+		groupScanWeak = len(req.WaitWeak)
 	}
 	workerGroup := make(chan bool, req.GroupScanWeak)
 
-	for _, item := range waitWeak {
+	for _, item := range req.WaitWeak {
 		taskScanWeakGroup(req, item, &wg, workerGroup, item.Service)
 	}
 
