@@ -21,6 +21,7 @@ import (
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/nasdf/ulimit"
 	"github.com/projectdiscovery/goflags"
+	"net"
 	"os"
 	"runtime"
 	"strconv"
@@ -217,6 +218,12 @@ func doTask(p models.Params) {
 
 	// 1.主机存活检测
 	if !p.NoScanHost {
+		if p.MethodScanHost == "ICMP" {
+			if !CheckICMP() {
+				fmt.Println("Unable to send icmp packets, Change to ping !")
+				p.MethodScanHost = "PING"
+			}
+		}
 		p.IPs = task_scan_host.DoTaskScanHost(p)
 	}
 
@@ -331,6 +338,19 @@ func doTask(p models.Params) {
 	fmt.Println(fmt.Sprintf("Output TXT File：%s", p.OutputTxt))
 }
 
+func CheckICMP() bool {
+	conn, err := net.DialTimeout("ip4:icmp", "127.0.0.1", 3*time.Second)
+	defer func() {
+		if conn != nil {
+			conn.Close()
+		}
+	}()
+	if err != nil {
+		return false
+	}
+	return true
+}
+
 func main() {
 	err := ulimit.SetRlimit(65535)
 	if err != nil {
@@ -365,7 +385,7 @@ func main() {
 	flagSet.StringVarP(&p.Port, "port", "p", "web", "端口范围：tiny[精简]、web[WEB服务]、normal[常用]、database[数据库]、caffe[咖啡厅/酒店/机场]、iot[物联网]、all[全部]、自定义")
 	flagSet.StringVarP(&p.Protocol, "protocol", "pt", "tcp+udp", "端口范围：tcp、udp、tcp+udp")
 	flagSet.StringVarP(&p.HostBlack, "hostBlack", "hb", "", "排除网段")
-	flagSet.StringVarP(&p.MethodScanHost, "methodScanHost", "msh", "PING", "验存方式：PING、ICMP")
+	flagSet.StringVarP(&p.MethodScanHost, "methodScanHost", "msh", "ICMP", "验存方式：PING、ICMP")
 	flagSet.IntVarP(&p.WorkerScanHost, "workerScanHost", "wsh", 250, "存活并发")
 	flagSet.IntVarP(&p.TimeOutScanHost, "timeOutScanHost", "tsh", 3, "存活超时")
 	flagSet.IntVarP(&p.Rarity, "rarity", "r", 10, "优先级")

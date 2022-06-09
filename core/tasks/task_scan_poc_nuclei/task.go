@@ -93,6 +93,8 @@ func (t *taskScanPocNuclei) doDone(item interface{}) error {
 	savePocs[fmt.Sprintf("E%d", index)] = result.VulLevel
 	savePocs[fmt.Sprintf("F%d", index)] = result.VulDesc
 	savePocs[fmt.Sprintf("G%d", index)] = result.PocName
+	savePocs[fmt.Sprintf("H%d", index)] = result.PacketSend
+	savePocs[fmt.Sprintf("I%d", index)] = result.PacketRecv
 
 	savePocTxt = append(savePocTxt, fmt.Sprintf(
 		"%s <[Title:%s] [Name:%s] [Level:%s] [CataLog:%s]>",
