@@ -15,6 +15,7 @@ import (
 
 var index = 2
 var saveData = map[string]interface{}{}
+var saveTxt = []string{"*****************<User Password>*****************\r\n"}
 var lock sync.Mutex
 
 // 爆破分组
@@ -148,6 +149,18 @@ func taskScanWeak(req models.Params, item models.WaitScanWeak, key string) {
 				saveData[fmt.Sprintf(`C%d`, index)] = result.Service
 				saveData[fmt.Sprintf(`D%d`, index)] = result.User
 				saveData[fmt.Sprintf(`E%d`, index)] = result.Pass
+
+				saveTxt = append(
+					saveTxt,
+					fmt.Sprintf(
+						"%s:%s [%s] <[user:%s] [pass:%s]>",
+						result.Ip,
+						result.Port,
+						result.Service,
+						result.User,
+						result.Pass,
+					)+"\r\n",
+				)
 				index++
 
 				bar.Set("alive", fmt.Sprintf("%s:%s<%s>[+](1)", item.Ip, item.Port, item.Service))
@@ -218,8 +231,10 @@ func DoTaskScanWeak(req models.Params) {
 	wg.Wait()
 	close(workerGroup)
 
+	saveTxt = append(saveTxt, "*****************<User Password>*****************\r\n\r\n")
 	// 保存数据
 	utils.SaveData(req.OutputExcel, "弱口令", saveData)
+	utils.SaveText(req.OutputTxt, saveTxt)
 
 	_time = float32(time.Since(start).Seconds())
 	fmt.Println(fmt.Sprintf(`完成弱口令爆破，执行总耗时：%f秒`, _time))

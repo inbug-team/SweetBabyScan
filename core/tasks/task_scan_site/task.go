@@ -18,6 +18,7 @@ type taskScanSite struct {
 var sites []models.ScanSite
 var index = 2
 var saveWeb = map[string]interface{}{}
+var saveWebTxt = []string{"*****************<WEB>*****************\r\n"}
 
 // 1.迭代方法
 func (t *taskScanSite) doIter(wg *sync.WaitGroup, worker chan bool, result chan utils.CountResult, task utils.Task, data ...interface{}) {
@@ -72,10 +73,31 @@ func (t *taskScanSite) doDone(item interface{}) error {
 	saveWeb[fmt.Sprintf("F%d", index)] = result.CmsName
 	saveWeb[fmt.Sprintf("G%d", index)] = result.StatusCode
 	saveWeb[fmt.Sprintf("H%d", index)] = "." + result.Image
+	saveWebTxt = append(
+		saveWebTxt,
+		fmt.Sprintf(
+			`%s <[Title:%s] [Code:%s] [Finger:%s]>`,
+			result.Link,
+			result.Title,
+			result.StatusCode,
+			result.CmsName)+"\r\n",
+	)
+	if result.LinkRedirect != "" {
+		saveWebTxt = append(
+			saveWebTxt,
+			fmt.Sprintf(
+				"\t|--> redirect %s",
+				result.LinkRedirect,
+			)+"\r\n",
+		)
+	}
 	index++
 
 	if t.params.IsLog {
 		fmt.Println(fmt.Sprintf(`[+]发现网站 %s <[Title:%s] [Code:%s] [Finger:%s]>`, result.Link, result.Title, result.StatusCode, result.CmsName))
+		if result.LinkRedirect != "" {
+			fmt.Println(fmt.Sprintf("[>]跳转链接 %s", result.LinkRedirect))
+		}
 	}
 	return nil
 }
@@ -117,8 +139,11 @@ func DoTaskScanSite(req models.Params) []models.ScanSite {
 		),
 		"完成扫描网站CMS",
 		func() {
+			saveWebTxt = append(saveWebTxt, "*****************<WEB>*****************\r\n\r\n")
+
 			// 保存数据-WEB信息
 			utils.SaveData(req.OutputExcel, "WEB", saveWeb)
+			utils.SaveText(req.OutputTxt, saveWebTxt)
 		},
 		req.Urls,
 	)

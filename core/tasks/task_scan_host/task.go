@@ -136,22 +136,33 @@ func DoTaskScanHost(req models.Params) []int {
 
 			// 保存数据-存活IP
 			saveIps := map[string]interface{}{}
+			saveIpTxt := []string{"*****************<IP>*****************\r\n"}
 			indexIps := 2
 			for _, v := range ip {
-				saveIps[fmt.Sprintf("A%d", indexIps)] = utils.IpIntToString(v)
+				_v := utils.IpIntToString(v)
+				saveIps[fmt.Sprintf("A%d", indexIps)] = _v
+				saveIpTxt = append(saveIpTxt, fmt.Sprintf("%s\r\n", _v))
 				indexIps++
 			}
+			saveIpTxt = append(saveIpTxt, "*****************<IP>*****************\r\n\n")
+
 			utils.SaveData(req.OutputExcel, "存活IP", saveIps)
+			utils.SaveText(req.OutputTxt, saveIpTxt)
 
 			// 保存数据-IP段
 			indexIpSegments := 2
 			saveIpSegments := map[string]interface{}{}
+			saveIpSegmentTxt := []string{"*****************<IP Segment>*****************\r\n"}
 			for _, v := range listIpRange {
 				saveIpSegments[fmt.Sprintf("A%d", indexIpSegments)] = v.Key
 				saveIpSegments[fmt.Sprintf("B%d", indexIpSegments)] = v.Value
+				saveIpSegmentTxt = append(saveIpSegmentTxt, fmt.Sprintf("%s -> %d\r\n", v.Key, v.Value))
 				indexIpSegments++
 			}
+			saveIpSegmentTxt = append(saveIpSegmentTxt, "*****************<IP Segment>*****************\r\n\r\n")
+
 			utils.SaveData(req.OutputExcel, "IP段", saveIpSegments)
+			utils.SaveText(req.OutputTxt, saveIpSegmentTxt)
 		},
 		req.IPs,
 	)

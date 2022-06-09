@@ -121,15 +121,6 @@ func readFileArr(data string) (newData []string, status bool) {
 
 // 弱口令生成器
 func generatePwd(pwdPrefix, pwdCenter, pwdSuffix string) (passwords []string) {
-	//fmt.Println("Password Generator 弱口令生成器，多个以空格隔开")
-	//reader := bufio.NewReader(os.Stdin)
-	//fmt.Print("[password prefix] > ")
-	//pwdPrefix, _ = reader.ReadString('\n')
-	//fmt.Print("[password center] > ")
-	//pwdCenter, _ = reader.ReadString('\n')
-	//fmt.Print("[password suffix] > ")
-	//pwdSuffix, _ = reader.ReadString('\n')
-
 	_pwdPrefix := strings.Split(strings.TrimSpace(pwdPrefix), ",")
 	_pwdCenter := strings.Split(strings.TrimSpace(pwdCenter), ",")
 	_pwdSuffix := strings.Split(strings.TrimSpace(pwdSuffix), ",")
@@ -151,8 +142,6 @@ func generatePwd(pwdPrefix, pwdCenter, pwdSuffix string) (passwords []string) {
 			}
 		}
 	}
-	//fmt.Println(fmt.Sprintf("[password result] %d record:", len(passwords)))
-	//fmt.Println(strings.Join(passwords, " "))
 
 	passwords = utils.RemoveRepeatedElement(passwords)
 	return
@@ -164,11 +153,21 @@ func doTask(p models.Params) {
 	now := time.Now()
 
 	// 定义保存文件
+	fileDate := now.Format("20060102150405")
 	if p.OutputExcel == "" {
-		p.OutputExcel = fmt.Sprintf("./result-%s.xlsx", now.Format("20060102150405"))
+		p.OutputExcel = fmt.Sprintf("./result-%s.xlsx", fileDate)
 	} else {
 		if !strings.HasSuffix(strings.ToLower(p.OutputExcel), ".xlsx") {
-			fmt.Println("[x]保存文件仅支持excel，必须以xlsx结尾")
+			fmt.Println("[x]保存excel文件必须以.xlsx结尾")
+			os.Exit(0)
+		}
+	}
+
+	if p.OutputTxt == "" {
+		p.OutputTxt = fmt.Sprintf("./result-%s.txt", fileDate)
+	} else {
+		if !strings.HasSuffix(strings.ToLower(p.OutputTxt), ".txt") {
+			fmt.Println("[x]保存txt文件必须以.txt结尾")
 			os.Exit(0)
 		}
 	}
@@ -329,6 +328,7 @@ func doTask(p models.Params) {
 	}
 
 	fmt.Println(fmt.Sprintf("Output Excel File：%s", p.OutputExcel))
+	fmt.Println(fmt.Sprintf("Output TXT File：%s", p.OutputTxt))
 }
 
 func main() {
@@ -360,6 +360,7 @@ func main() {
 	flagSet.BoolVarP(&p.IsLog, "isLog", "il", true, "是否显示日志")
 	flagSet.BoolVarP(&p.IsScreen, "isScreen", "is", isScreen, "是否启用截图")
 	flagSet.StringVarP(&p.OutputExcel, "outputExcel", "oe", "", "指定保存excel文件路径[以.xlsx结尾]")
+	flagSet.StringVarP(&p.OutputTxt, "outputTxt", "ot", "", "指定保存txt文件路径[以.txt结尾]")
 	flagSet.StringVarP(&p.Host, "host", "h", "192.168.0.0/16,172.16.0.0/12,10.0.0.0/8", "检测网段或者txt文件[以.txt结尾，一行一组回车换行]")
 	flagSet.StringVarP(&p.Port, "port", "p", "web", "端口范围：tiny[精简]、web[WEB服务]、normal[常用]、database[数据库]、caffe[咖啡厅/酒店/机场]、iot[物联网]、all[全部]、自定义")
 	flagSet.StringVarP(&p.Protocol, "protocol", "pt", "tcp+udp", "端口范围：tcp、udp、tcp+udp")
@@ -372,8 +373,8 @@ func main() {
 	flagSet.IntVarP(&p.TimeOutScanPortConnect, "timeOutScanPortConnect", "tspc", 3, "端口扫描连接超时")
 	flagSet.IntVarP(&p.TimeOutScanPortSend, "timeOutScanPortSend", "tsps", 3, "端口扫描发包超时")
 	flagSet.IntVarP(&p.TimeOutScanPortRead, "timeOutScanPortRead", "tspr", 3, "端口扫描读取超时")
-	flagSet.BoolVarP(&p.IsNULLProbeOnly, "isNULLProbeOnly", "inpo", false, "使用空探针")
-	flagSet.BoolVarP(&p.IsUseAllProbes, "isUseAllProbes", "iuap", false, "使用全量探针")
+	flagSet.BoolVarP(&p.IsNULLProbeOnly, "isNULLProbeOnly", "inpo", false, "使用空探针，默认使用自适应探针")
+	flagSet.BoolVarP(&p.IsUseAllProbes, "isUseAllProbes", "iuap", false, "使用全量探针，默认使用自适应探针")
 	flagSet.IntVarP(&p.WorkerScanSite, "workerScanSite", "wss", runtime.NumCPU()*2, "爬虫并发")
 	flagSet.IntVarP(&p.TimeOutScanSite, "timeOutScanSite", "tss", 3, "爬虫超时")
 	flagSet.IntVarP(&p.TimeOutScreen, "timeOutScreen", "ts", 60, "截图超时")

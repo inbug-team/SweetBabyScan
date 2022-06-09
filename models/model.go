@@ -180,22 +180,23 @@ type ScanPort struct {
 
 // 网站爬虫结构
 type ScanSite struct {
-	Title       string `json:"title"`        // 网站标题
-	Link        string `json:"link"`         // 网站链接
-	StatusCode  string `json:"status_code"`  // 状态代码
-	Ip          string `json:"ip"`           // ip
-	Port        string `json:"port"`         // 端口
-	Keywords    string `json:"keywords"`     // 关键字
-	Description string `json:"description"`  // 网站描述
-	Header      string `json:"header"`       // 头部信息
-	Image       string `json:"image"`        // 网站截图（大图）
-	Tls         string `json:"tls"`          // tls证书
-	CmsName     string `json:"cms_name"`     // CMS系统名称
-	CmsType     string `json:"cms_type"`     // CMS匹配类型
-	CmsRule     string `json:"cms_rule"`     // CMS匹配规则
-	CmsMd5Str   string `json:"cms_md5_str"`  // CMS MD5字符串
-	CmsMd5Name  string `json:"cms_md5_name"` // CMS MD5系统名称
-	CmsInfo     string `json:"cms_info"`     // CMS信息
+	Title        string `json:"title"`         // 网站标题
+	Link         string `json:"link"`          // 网站链接
+	LinkRedirect string `json:"link_redirect"` // 网站跳转连接
+	StatusCode   string `json:"status_code"`   // 状态代码
+	Ip           string `json:"ip"`            // ip
+	Port         string `json:"port"`          // 端口
+	Keywords     string `json:"keywords"`      // 关键字
+	Description  string `json:"description"`   // 网站描述
+	Header       string `json:"header"`        // 头部信息
+	Image        string `json:"image"`         // 网站截图（大图）
+	Tls          string `json:"tls"`           // tls证书
+	CmsName      string `json:"cms_name"`      // CMS系统名称
+	CmsType      string `json:"cms_type"`      // CMS匹配类型
+	CmsRule      string `json:"cms_rule"`      // CMS匹配规则
+	CmsMd5Str    string `json:"cms_md5_str"`   // CMS MD5字符串
+	CmsMd5Name   string `json:"cms_md5_name"`  // CMS MD5系统名称
+	CmsInfo      string `json:"cms_info"`      // CMS信息
 }
 
 // POC结构

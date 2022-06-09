@@ -2,6 +2,7 @@ package initialize_http_client
 
 import (
 	"crypto/tls"
+	"errors"
 	"net"
 	"net/http"
 	"time"
@@ -9,11 +10,20 @@ import (
 
 var (
 	HttpClient           *http.Client
+	HttpClientRedirect   *http.Client
 	HttpClientNoRedirect *http.Client
 	dialTimout           = 10 * time.Second
 	keepAlive            = 15 * time.Second
 	timeout              = 10 * time.Second
 )
+
+func CheckRedirect(req *http.Request, via []*http.Request) error {
+	//自用，将url根据需求进行组合
+	if len(via) >= 1 {
+		return errors.New("stopped after 1 redirects")
+	}
+	return nil
+}
 
 func InitHttpClient() {
 	dialer := &net.Dialer{
@@ -35,6 +45,11 @@ func InitHttpClient() {
 	HttpClient = &http.Client{
 		Transport: tr,
 		Timeout:   timeout,
+	}
+	HttpClientRedirect = &http.Client{
+		Transport:     tr,
+		Timeout:       timeout,
+		CheckRedirect: CheckRedirect,
 	}
 	HttpClientNoRedirect = &http.Client{
 		Transport:     tr,

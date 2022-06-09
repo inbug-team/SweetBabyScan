@@ -25,6 +25,7 @@ var vulData []models.WaitScanVul
 var weakData []models.WaitScanWeak
 var index = 2
 var savePorts = map[string]interface{}{}
+var savePortTxt = []string{"*****************<Port Info>*****************\r\n"}
 var aliveIps = map[string]string{}
 var ipRange = map[string]int{}
 
@@ -47,32 +48,18 @@ func (t *taskScanPort) doTask(wg *sync.WaitGroup, worker chan bool, result chan 
 	defer wg.Done()
 	ip, port, protocol := data[0], data[1], data[2]
 
-	tmpResult := make(chan utils.CountResult, 1)
-
-	go func(_ip, _protocol string, _port uint) {
-		target := plugin_scan_port.Target{
-			IP:       _ip,
-			Port:     _port,
-			Protocol: _protocol,
+	target := plugin_scan_port.Target{
+		IP:       utils.IpIntToString(ip.(int)),
+		Port:     port.(uint),
+		Protocol: protocol.(string),
+	}
+	res, err, status := t.scan.Explore(target, &t.config)
+	if err == nil && status {
+		result <- utils.CountResult{
+			Count:  1,
+			Result: res,
 		}
-		res, err, status := t.scan.Explore(target, &t.config)
-		if err == nil && status {
-			tmpResult <- utils.CountResult{
-				Count:  1,
-				Result: res,
-			}
-		} else {
-			tmpResult <- utils.CountResult{
-				Count:  1,
-				Result: nil,
-			}
-		}
-	}(utils.IpIntToString(ip.(int)), protocol.(string), port.(uint))
-
-	select {
-	case res := <-tmpResult:
-		result <- res
-	case <-time.After(time.Duration(t.params.TimeOutScanPortConnect+t.params.TimeOutScanPortSend+t.params.TimeOutScanPortRead) * time.Second):
+	} else {
 		result <- utils.CountResult{
 			Count:  1,
 			Result: nil,
@@ -146,6 +133,15 @@ func (t *taskScanPort) doDone(item interface{}) error {
 	savePorts[fmt.Sprintf("B%d", index)], _ = strconv.Atoi(data.Port)
 	savePorts[fmt.Sprintf("C%d", index)] = data.Service
 	savePorts[fmt.Sprintf("D%d", index)] = data.Probe
+
+	savePortTxt = append(savePortTxt, fmt.Sprintf(
+		`%s:%d [%s] [%s] [%s]`,
+		result.Target.IP,
+		result.Target.Port,
+		result.Target.Protocol,
+		result.Service.Name,
+		result.ProbeName,
+	)+"\r\n")
 	index++
 
 	if t.params.NoScanHost {
@@ -244,7 +240,9 @@ func DoTaskScanPort(req models.Params) ([]string, []models.WaitScanVul, []models
 		"完成端口服务扫描",
 		func() {
 			// 保存数据-端口信息
+			savePortTxt = append(savePortTxt, "*****************<Port Info>*****************\r\n\r\n")
 			utils.SaveData(req.OutputExcel, "端口信息", savePorts)
+			utils.SaveText(req.OutputTxt, savePortTxt)
 
 			if req.NoScanHost {
 				// 保存数据-IP段
@@ -257,21 +255,29 @@ func DoTaskScanPort(req models.Params) ([]string, []models.WaitScanVul, []models
 				})
 				indexIpSegments := 2
 				saveIpSegments := map[string]interface{}{}
+				saveIpSegmentTxt := []string{"*****************<IP Segment>*****************\r\n"}
 				for _, v := range listIpRange {
 					saveIpSegments[fmt.Sprintf("A%d", indexIpSegments)] = v.Key
 					saveIpSegments[fmt.Sprintf("B%d", indexIpSegments)] = v.Value
+					saveIpSegmentTxt = append(saveIpSegmentTxt, fmt.Sprintf("%s -> %d\r\n", v.Key, v.Value))
 					indexIpSegments++
 				}
+				saveIpSegmentTxt = append(saveIpSegmentTxt, "*****************<IP Segment>*****************\r\n\r\n")
 				utils.SaveData(req.OutputExcel, "IP段", saveIpSegments)
+				utils.SaveText(req.OutputTxt, saveIpSegmentTxt)
 
 				// 保存数据-存活IP
 				saveIps := map[string]interface{}{}
+				saveIpTxt := []string{"*****************<IP>*****************\r\n"}
 				indexIps := 2
 				for v := range aliveIps {
 					saveIps[fmt.Sprintf("A%d", indexIps)] = v
+					saveIpTxt = append(saveIpTxt, fmt.Sprintf("%s\r\n", v))
 					indexIps++
 				}
+				saveIpTxt = append(saveIpTxt, "*****************<IP>*****************\r\n\r\n")
 				utils.SaveData(req.OutputExcel, "存活IP", saveIps)
+				utils.SaveText(req.OutputTxt, saveIpTxt)
 			}
 
 		},

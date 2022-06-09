@@ -95,36 +95,42 @@ func ConvertCharset(dataByte []byte) string {
 	return sourceCode
 }
 
-func DoScanSite(url string, timeOutScanSite, timeOutScreen int, isScreen bool) (site models.ScanSite) {
-
+func DoRequest(url string) (*http.Request, error) {
 	// 构造GET请求
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		//fmt.Println("请求错误：", err)
-		return site
+		return nil, err
 	}
 	request.Header.Set("User-Agent", config.GetUserAgent())
 	request.Header.Set("Accept", "*/*")
 	request.Header.Set("Accept-Language", "zh-CN,zh;q=0.9")
 	request.Header.Set("Cookie", "rememberMe=1")
 	request.Header.Set("Connection", "close")
-	client := initialize_http_client.HttpClient
+	return request, nil
+}
+
+func DoScanSite(url string, timeOutScanSite, timeOutScreen int, isScreen bool) (site models.ScanSite) {
+
+	// 构造GET请求
+	request, err := DoRequest(url)
+	if err != nil {
+		return site
+	}
+	client := initialize_http_client.HttpClientRedirect
 	client.Timeout = time.Duration(timeOutScanSite) * time.Second
 	resp, err := client.Do(request)
+
 	if err != nil {
-		//fmt.Println("请求错误：", err)
+	}
+
+	if resp == nil {
 		return site
 	}
 
 	defer func() {
-		err := resp.Body.Close()
-		utils.PrintErr(err)
+		resp.Body.Close()
 	}()
-
-	if resp == nil {
-		//fmt.Println("响应为空")
-		return site
-	}
 
 	if resp.TLS == nil {
 		site.Tls = ""
@@ -183,10 +189,52 @@ func DoScanSite(url string, timeOutScanSite, timeOutScreen int, isScreen bool) (
 		}
 	}
 
-	data, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		//fmt.Println("请求错误：", err)
-		return site
+	var data []byte
+	var respHeader http.Header
+
+	// 获取跳转后的链接
+	LinkRedirect := ""
+	urlRedirect, _ := resp.Location()
+	if urlRedirect != nil {
+		LinkRedirect = urlRedirect.String()
+	}
+
+	// 判断状态码
+	statusCode := resp.StatusCode
+	if statusCode >= 300 && statusCode < 400 {
+		clientRedirect := initialize_http_client.HttpClient
+		clientRedirect.Timeout = time.Duration(timeOutScanSite) * time.Second
+		requestRedirect, err := DoRequest(LinkRedirect)
+		if err != nil {
+			return site
+		}
+
+		respRedirect, err := clientRedirect.Do(requestRedirect)
+		if err != nil {
+			return site
+		}
+
+		if respRedirect == nil {
+			return site
+		}
+
+		defer func() {
+			respRedirect.Body.Close()
+		}()
+
+		respHeader = respRedirect.Header
+		data, err = ioutil.ReadAll(respRedirect.Body)
+		if err != nil {
+			fmt.Println(url, err)
+			return site
+		}
+	} else {
+		respHeader = resp.Header
+		data, err = ioutil.ReadAll(resp.Body)
+		if err != nil {
+			fmt.Println(url, err)
+			return site
+		}
 	}
 
 	htmlData := strings.NewReader(ConvertCharset(data))
@@ -217,20 +265,27 @@ func DoScanSite(url string, timeOutScanSite, timeOutScreen int, isScreen bool) (
 		}
 	})
 
-	header, _ := json.Marshal(resp.Header)
+	header, _ := json.Marshal(respHeader)
 	site.Header = string(header)
 
 	host, _ := netUrl.Parse(url)
 	site.Port = host.Port()
 	site.Ip = strings.Split(host.Host, ":")[0]
-	site.StatusCode = strconv.Itoa(resp.StatusCode)
+	site.StatusCode = strconv.Itoa(statusCode)
 	site.Link = url
+	site.LinkRedirect = LinkRedirect
 
 	if isScreen {
 		_url := strings.ReplaceAll(url, ":", "_")
 		_url = strings.ReplaceAll(_url, "/", "_")
 		siteImageName := fmt.Sprintf(`%s.png`, _url)
-		status := DoFullScreenshot(url, fmt.Sprintf("./static/%s", siteImageName), time.Duration(timeOutScreen)*time.Second)
+
+		urlScreen := url
+		if site.LinkRedirect != "" {
+			urlScreen = site.LinkRedirect
+		}
+
+		status := DoFullScreenshot(urlScreen, fmt.Sprintf("./static/%s", siteImageName), time.Duration(timeOutScreen)*time.Second)
 		if status {
 			site.Image = "/static/" + siteImageName
 		}
@@ -252,7 +307,7 @@ func DoScanSite(url string, timeOutScanSite, timeOutScreen int, isScreen bool) (
 	if err != nil || cmsClient == nil {
 		return
 	}
-	fingerprints := cmsClient.Fingerprint(resp.Header, data)
+	fingerprints := cmsClient.Fingerprint(respHeader, data)
 	cmsInfoByte, _ := json.Marshal(fingerprints)
 	site.CmsInfo = string(cmsInfoByte)
 

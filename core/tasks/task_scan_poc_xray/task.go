@@ -18,6 +18,7 @@ type taskScanPocXray struct {
 var pocData []models.ScanPoc
 var index = 2
 var savePocs = map[string]interface{}{}
+var savePocTxt = []string{"*****************<Poc Xray>*****************\r\n"}
 
 // 1.迭代方法
 func (t *taskScanPocXray) doIter(wg *sync.WaitGroup, worker chan bool, result chan utils.CountResult, task utils.Task, data ...interface{}) {
@@ -89,6 +90,12 @@ func (t *taskScanPocXray) doDone(item interface{}) error {
 	savePocs[fmt.Sprintf("E%d", index)] = result.VulLevel
 	savePocs[fmt.Sprintf("F%d", index)] = result.VulDesc
 	savePocs[fmt.Sprintf("G%d", index)] = result.PocName
+	savePocTxt = append(savePocTxt, fmt.Sprintf(
+		"%s <[Title:%s] [Name:%s]>",
+		result.Url,
+		result.Title,
+		result.PocName,
+	)+"\r\n")
 	index++
 
 	if t.params.IsLog {
@@ -134,8 +141,10 @@ func DoTaskScanPocXray(req models.Params, i int) {
 		),
 		"完成PocXray漏洞检测",
 		func() {
+			savePocTxt = append(savePocTxt, "*****************<Poc Xray>*****************\r\n\r\n")
 			// 保存数据-漏洞信息
 			utils.SaveData(req.OutputExcel, "漏洞信息", savePocs)
+			utils.SaveText(req.OutputTxt, savePocTxt)
 		},
 		req.Sites,
 		req.PocXray,
