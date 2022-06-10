@@ -1,8 +1,0 @@
-administrator
-admin
-test
-user
-manager
-webadmin
-guest
-db2admin
