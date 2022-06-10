@@ -20,7 +20,7 @@ type CmsResult struct {
 	CmsMd5Name string
 }
 
-func InfoCheck(url string, data CheckData) (result CmsResult) {
+func InfoCheck(data CheckData) (result CmsResult) {
 	var matched bool
 
 	for _, rule := range info.RuleDataList {
@@ -43,9 +43,6 @@ func InfoCheck(url string, data CheckData) (result CmsResult) {
 		result.CmsMd5Name = name
 	}
 
-	//if result.CmsName != "" {
-	//	fmt.Println(fmt.Sprintf("[+]发现web系统：%-25v %s ", url, result.CmsName))
-	//}
 	return result
 }
 

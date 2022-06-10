@@ -303,7 +303,7 @@ func DoScanSite(url string, timeOutScanSite, timeOutScreen int, isScreen bool) (
 	}
 
 	// 获取指纹
-	cmsResult := plugin_scan_cms2.InfoCheck(url, plugin_scan_cms2.CheckData{
+	cmsResult := plugin_scan_cms2.InfoCheck(plugin_scan_cms2.CheckData{
 		Body:    data,
 		Headers: string(header),
 	})
