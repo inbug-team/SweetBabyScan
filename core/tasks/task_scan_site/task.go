@@ -1,6 +1,7 @@
 package task_scan_site
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_site"
 	"github.com/inbug-team/SweetBabyScan/models"
@@ -70,9 +71,19 @@ func (t *taskScanSite) doDone(item interface{}) error {
 	}
 	saveWeb[fmt.Sprintf("D%d", index)] = result.Link
 	saveWeb[fmt.Sprintf("E%d", index)] = result.Title
-	saveWeb[fmt.Sprintf("F%d", index)] = result.CmsName
+
+	var cmsInfo []string
+	json.Unmarshal([]byte(result.CmsInfo), &cmsInfo)
+	cmsName := strings.Join(cmsInfo, "|")
+	if cmsName == "" {
+		cmsName = result.CmsName
+	}
+
+	saveWeb[fmt.Sprintf("F%d", index)] = cmsName
 	saveWeb[fmt.Sprintf("G%d", index)] = result.StatusCode
 	saveWeb[fmt.Sprintf("H%d", index)] = "." + result.Image
+	index++
+
 	saveWebTxt = append(
 		saveWebTxt,
 		fmt.Sprintf(
@@ -80,21 +91,20 @@ func (t *taskScanSite) doDone(item interface{}) error {
 			result.Link,
 			result.Title,
 			result.StatusCode,
-			result.CmsName)+"\r\n",
+			cmsName)+"\r\n",
 	)
 	if result.LinkRedirect != "" {
 		saveWebTxt = append(
 			saveWebTxt,
 			fmt.Sprintf(
-				"\t|--> redirect %s",
+				"\t|--> Redirect %s",
 				result.LinkRedirect,
 			)+"\r\n",
 		)
 	}
-	index++
 
 	if t.params.IsLog {
-		fmt.Println(fmt.Sprintf(`[+]发现网站 %s <[Title:%s] [Code:%s] [Finger:%s]>`, result.Link, result.Title, result.StatusCode, result.CmsName))
+		fmt.Println(fmt.Sprintf(`[+]发现网站 %s <[Title:%s] [Code:%s] [Finger:%s]>`, result.Link, result.Title, result.StatusCode, cmsName))
 		if result.LinkRedirect != "" {
 			fmt.Println(fmt.Sprintf("[>]跳转链接 %s", result.LinkRedirect))
 		}

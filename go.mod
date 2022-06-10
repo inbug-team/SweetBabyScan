@@ -11,7 +11,6 @@ require (
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-rod/rod v0.106.8
 	github.com/go-sql-driver/mysql v1.6.0
-	github.com/golang/protobuf v1.5.2
 	github.com/google/cel-go v0.11.4
 	github.com/gosnmp/gosnmp v1.35.0
 	github.com/jedib0t/go-pretty/v6 v6.3.1
@@ -22,15 +21,16 @@ require (
 	github.com/olivere/elastic/v7 v7.0.32
 	github.com/projectdiscovery/goflags v0.0.8-0.20220412061559-5119d6086323
 	github.com/projectdiscovery/nuclei/v2 v2.7.1
+	github.com/projectdiscovery/wappalyzergo v0.0.42
 	github.com/satori/go.uuid v1.2.0
 	github.com/stacktitan/smb v0.0.0-20190531122847-da9a425dceb8
 	github.com/xuri/excelize/v2 v2.6.0
 	go.mongodb.org/mongo-driver v1.9.1
 	go.uber.org/ratelimit v0.2.0
 	golang.org/x/crypto v0.0.0-20220518034528-6f7dac969898
-	golang.org/x/net v0.0.0-20220524220425-1d687d428aca
 	golang.org/x/text v0.3.7
 	google.golang.org/genproto v0.0.0-20220502173005-c8bf987b8c21
+	google.golang.org/protobuf v1.28.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 	gorm.io/driver/mysql v1.3.3
 	gorm.io/driver/postgres v1.3.6
@@ -81,6 +81,7 @@ require (
 	github.com/golang-sql/civil v0.0.0-20190719163853-cb61b32ac6fe // indirect
 	github.com/golang-sql/sqlexp v0.1.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
+	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/google/go-github v17.0.0+incompatible // indirect
@@ -193,6 +194,7 @@ require (
 	go.uber.org/zap v1.21.0 // indirect
 	goftp.io/server/v2 v2.0.0 // indirect
 	golang.org/x/mod v0.4.2 // indirect
+	golang.org/x/net v0.0.0-20220524220425-1d687d428aca // indirect
 	golang.org/x/oauth2 v0.0.0-20211005180243-6b3c2da341f1 // indirect
 	golang.org/x/sync v0.0.0-20220513210516-0976fa681c29 // indirect
 	golang.org/x/sys v0.0.0-20220227234510-4e6760a101f9 // indirect
@@ -200,7 +202,6 @@ require (
 	golang.org/x/tools v0.1.6-0.20210726203631-07bc1bf47fb2 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6 // indirect
 	gopkg.in/corvus-ch/zbase32.v1 v1.0.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

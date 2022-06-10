@@ -6,8 +6,8 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/go-rod/rod"
 	"github.com/inbug-team/SweetBabyScan/config"
-	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_cms1"
 	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_cms2"
+	"github.com/inbug-team/SweetBabyScan/initializes/initialize_cms"
 	"github.com/inbug-team/SweetBabyScan/initializes/initialize_http_client"
 	"github.com/inbug-team/SweetBabyScan/models"
 	"github.com/inbug-team/SweetBabyScan/utils"
@@ -314,13 +314,17 @@ func DoScanSite(url string, timeOutScanSite, timeOutScreen int, isScreen bool) (
 	site.CmsRule = cmsResult.CmsRule
 
 	// 获取cms信息
-	cmsClient, err := plugin_scan_cms1.New()
-	if err != nil || cmsClient == nil {
-		return
+	if initialize_cms.CMSClient != nil {
+		fingerPrints := initialize_cms.CMSClient.Fingerprint(respHeader, data)
+		var cmsArr []string
+		if len(fingerPrints) > 0 {
+			for k := range fingerPrints {
+				cmsArr = append(cmsArr, k)
+			}
+		}
+		cmsInfoByte, _ := json.Marshal(cmsArr)
+		site.CmsInfo = string(cmsInfoByte)
 	}
-	fingerprints := cmsClient.Fingerprint(respHeader, data)
-	cmsInfoByte, _ := json.Marshal(fingerprints)
-	site.CmsInfo = string(cmsInfoByte)
 
 	return site
 }
