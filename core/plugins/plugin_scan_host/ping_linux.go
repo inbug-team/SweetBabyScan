@@ -10,7 +10,7 @@ import (
 // PING检测存活
 func ScanHostByPing(host string) bool {
 	var command *exec.Cmd
-	env := "/bin/bash"
+	env := "bash"
 	command = exec.Command(env, "-c", fmt.Sprintf("ping -c 1 -w 1 %s >/dev/null && echo true || echo false", host))
 	outInfo := bytes.Buffer{}
 	if command == nil {
