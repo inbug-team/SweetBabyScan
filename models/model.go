@@ -145,6 +145,9 @@ type Params struct {
 	PasswordPrefix         string                         // 密码前缀
 	PasswordCenter         string                         // 密码中位
 	PasswordSuffix         string                         // 密码后缀
+	PortForward            bool                           // 是否开启端口转发
+	SourceHost             string                         // 目标转发主机
+	LocalPort              int                            // 本机代理端口
 }
 
 // 主机存活结构

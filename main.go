@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/common-nighthawk/go-figure"
 	"github.com/inbug-team/SweetBabyScan/config"
+	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_port_forward"
 	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_poc_nuclei"
 	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_poc_xray/load"
 	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_weak"
@@ -352,26 +353,10 @@ func CheckICMP() bool {
 }
 
 func main() {
-	err := ulimit.SetRlimit(65535)
-	if err != nil {
-		fmt.Println(err)
-	}
 	myFigure := figure.NewColorFigure("SBScan", "doom", "red", true)
 	myFigure.Print()
 	fmt.Println("全称：SweetBabyScan，甜心宝贝扫描器")
 	fmt.Println("Version <0.0.7> Made By InBug")
-
-	soft, hard, err := ulimit.GetRlimit()
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	fmt.Println(fmt.Sprintf("ulimit soft: %d ｜ulimit hard: %d", soft, hard))
-	if isScreen {
-		fmt.Println("chrome headless ready")
-	} else {
-		fmt.Println("chrome headless not ready")
-	}
 
 	p := models.Params{}
 
@@ -421,15 +406,37 @@ func main() {
 	flagSet.StringVarP(&p.PasswordPrefix, "passwordPrefix", "pp", "", "密码前缀，多个英文逗号分隔")
 	flagSet.StringVarP(&p.PasswordCenter, "passwordCenter", "pc", "", "密码中位，多个英文逗号分隔")
 	flagSet.StringVarP(&p.PasswordSuffix, "passwordSuffix", "ps", "", "密码后缀，多个英文逗号分隔")
+	flagSet.BoolVarP(&p.PortForward, "portForward", "pf", false, "是否开启端口转发")
+	flagSet.StringVarP(&p.SourceHost, "sourceHost", "sh", "", "目标转发主机")
+	flagSet.IntVarP(&p.LocalPort, "localPort", "lp", 0, "本机代理端口")
 	flagSet.Parse()
 
-	plugin_scan_poc_nuclei.InitPocNucleiExecOpts(p.TimeOutScanPocNuclei)
-
 	if p.ListPocNuclei {
+		plugin_scan_poc_nuclei.InitPocNucleiExecOpts(p.TimeOutScanPocNuclei)
 		findPocsNuclei(p)
 	} else if p.ListPocXray {
 		findPocsXray(p)
+	} else if p.PortForward {
+		plugin_port_forward.StartPortForward(p.LocalPort, p.SourceHost)
 	} else {
+		err := ulimit.SetRlimit(65535)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		soft, hard, err := ulimit.GetRlimit()
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		fmt.Println(fmt.Sprintf("ulimit soft: %d ｜ulimit hard: %d", soft, hard))
+		if isScreen {
+			fmt.Println("chrome headless ready")
+		} else {
+			fmt.Println("chrome headless not ready")
+		}
+
+		plugin_scan_poc_nuclei.InitPocNucleiExecOpts(p.TimeOutScanPocNuclei)
 		doTask(p)
 	}
 
