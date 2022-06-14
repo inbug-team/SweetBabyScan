@@ -6,6 +6,7 @@ import (
 	"github.com/common-nighthawk/go-figure"
 	"github.com/inbug-team/SweetBabyScan/config"
 	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_port_forward"
+	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_port_map"
 	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_poc_nuclei"
 	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_poc_xray/load"
 	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_weak"
@@ -409,6 +410,14 @@ func main() {
 	flagSet.BoolVarP(&p.PortForward, "portForward", "pf", false, "是否开启端口转发")
 	flagSet.StringVarP(&p.SourceHost, "sourceHost", "sh", "", "目标转发主机")
 	flagSet.IntVarP(&p.LocalPort, "localPort", "lp", 0, "本机代理端口")
+	flagSet.BoolVarP(&p.PortMap, "portMap", "pm", false, "是否开启内网穿透")
+	flagSet.BoolVarP(&p.PortMapClient, "portMapClient", "pmc", false, "是否开启内网穿透-客户端")
+	flagSet.BoolVarP(&p.PortMapServer, "portMapServer", "pms", false, "是否开启内网穿透-服务端")
+	flagSet.StringVarP(&p.Secret, "secret", "s", "SBScan", "穿透密钥，自定义")
+	flagSet.IntVarP(&p.PortServerListen, "portServerListen", "psl", 9188, "穿透服务端监听端口")
+	flagSet.StringVarP(&p.PortServerOpen, "portServerOpen", "pso", "", "穿透服务端映射端口，多个英文逗号隔开")
+	flagSet.StringVarP(&p.ServerURI, "serverUri", "su", "", "穿透服务端地址，公网IP:端口")
+	flagSet.StringVarP(&p.PortClientMap, "portClientMap", "pcm", "", "穿透客户端映射字典，多个英文逗号隔开，格式：8080-127.0.0.1:8080,9000-192.168.188.1:9000")
 	flagSet.Parse()
 
 	if p.ListPocNuclei {
@@ -418,6 +427,67 @@ func main() {
 		findPocsXray(p)
 	} else if p.PortForward {
 		plugin_port_forward.StartPortForward(p.LocalPort, p.SourceHost)
+	} else if p.PortMap {
+		if p.PortMapServer {
+			// 服务端
+			if p.PortServerOpen == "" {
+				fmt.Println("映射端口不能为空！")
+				return
+			}
+			var openPorts []uint16
+			for _, v := range strings.Split(p.PortServerOpen, ",") {
+				_p, _ := strconv.Atoi(v)
+				openPorts = append(openPorts, uint16(_p))
+			}
+
+			if len(openPorts) == 0 {
+				fmt.Println("映射端口不能为空！")
+				return
+			}
+
+			forever := make(chan bool)
+			go plugin_port_map.DoServer(&plugin_port_map.ServerConfig{
+				Key:  p.Secret,
+				Port: uint16(p.PortServerListen),
+				Open: openPorts,
+			})
+			<-forever
+		} else if p.PortMapClient {
+			// 客户端
+			if p.ServerURI == "" {
+				fmt.Println("穿透服务端地址不能为空！")
+				return
+			}
+
+			if p.PortClientMap == "" {
+				fmt.Println("穿透客户端映射字典不能为空！")
+				return
+			}
+
+			var clientMap []plugin_port_map.ClientMapConfig
+			for _, v := range strings.Split(p.PortClientMap, ",") {
+				val := strings.Split(v, "-")
+				_p, _ := strconv.Atoi(val[0])
+				_h := val[1]
+				clientMap = append(clientMap, plugin_port_map.ClientMapConfig{
+					Inner: _h,
+					Outer: uint16(_p),
+				})
+			}
+
+			if len(clientMap) == 0 {
+				fmt.Println("穿透客户端映射字典不能为空！")
+				return
+			}
+
+			forever := make(chan bool)
+			go plugin_port_map.DoClient(&plugin_port_map.ClientConfig{
+				Key:    p.Secret,
+				Server: p.ServerURI,
+				Map:    clientMap,
+			})
+			<-forever
+		}
 	} else {
 		err := ulimit.SetRlimit(65535)
 		if err != nil {
