@@ -291,14 +291,3 @@ func DoClient(config *ClientConfig) {
 		}
 	}
 }
-
-//func main() {
-//	forever := make(chan bool)
-//
-//	var config Config
-//	go DoServer(config.Server)
-//	go DoClient(config.Client)
-//
-//	<-forever
-//	log.Println("Bye~")
-//}
