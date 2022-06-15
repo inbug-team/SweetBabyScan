@@ -155,10 +155,27 @@ func generatePwd(pwdPrefix, pwdCenter, pwdSuffix string) (passwords []string) {
 
 // 执行任务
 func doTask(p models.Params) {
+	isScreen = initialize_screenshot.InitScreenShot()
+
+	err := ulimit.SetRlimit(65535)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	soft, hard, err := ulimit.GetRlimit()
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Println(fmt.Sprintf("ulimit soft: %d ｜ulimit hard: %d", soft, hard))
+	if isScreen {
+		fmt.Println("chrome headless ready")
+	} else {
+		fmt.Println("chrome headless not ready")
+	}
+
 	fmt.Println("Loading......，Please be patient !")
 	now := time.Now()
-
-	isScreen = initialize_screenshot.InitScreenShot()
 
 	if p.IsScreen {
 		p.IsScreen = isScreen
@@ -500,23 +517,6 @@ func main() {
 			<-forever
 		}
 	} else {
-		err := ulimit.SetRlimit(65535)
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		soft, hard, err := ulimit.GetRlimit()
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		fmt.Println(fmt.Sprintf("ulimit soft: %d ｜ulimit hard: %d", soft, hard))
-		if isScreen {
-			fmt.Println("chrome headless ready")
-		} else {
-			fmt.Println("chrome headless not ready")
-		}
-
 		plugin_scan_poc_nuclei.InitPocNucleiExecOpts(p.TimeOutScanPocNuclei)
 		doTask(p)
 	}
