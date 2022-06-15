@@ -151,10 +151,14 @@ type Params struct {
 	PortMap                bool                           // 是否开启内网穿透
 	PortMapServer          bool                           // 是否开启内网穿透-服务端
 	PortMapClient          bool                           // 是否开启内网穿透-客户端
+	PortMapClientSock5     bool                           // 是否开启内网穿透-客户端sock5转发
 	Secret                 string                         // 密钥
 	PortServerListen       int                            // 穿透服务端监听端口
 	ServerURI              string                         // 穿透服务端地址
 	PortClientMap          string                         // 穿透客户端映射字典，格式：8080-127.0.0.1:8080,9000-192.168.188.1:9000
+	Sock5Port              int                            // sock5监听端口
+	Sock5AuthUsername      string                         // sock5鉴权账号
+	Sock5AuthPassword      string                         // sock5鉴权密码
 }
 
 // 主机存活结构

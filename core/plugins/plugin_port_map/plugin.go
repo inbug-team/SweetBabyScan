@@ -94,7 +94,7 @@ func DoServer(config *ServerConfig) {
 			return
 		}
 		defer func() {
-			Recover()
+			//Recover()
 			defer Recover()
 			close(resourceMap[port].ConnChan)
 			resourceMap[port].Listener.Close()

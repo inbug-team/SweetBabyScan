@@ -10,6 +10,7 @@ import (
 	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_poc_nuclei"
 	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_poc_xray/load"
 	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_weak"
+	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_sock5"
 	"github.com/inbug-team/SweetBabyScan/core/tasks/task_scan_host"
 	"github.com/inbug-team/SweetBabyScan/core/tasks/task_scan_poc_nuclei"
 	"github.com/inbug-team/SweetBabyScan/core/tasks/task_scan_poc_xray"
@@ -23,6 +24,7 @@ import (
 	"github.com/inbug-team/SweetBabyScan/utils"
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/nasdf/ulimit"
+	"github.com/net-byte/socks5-server/socks5"
 	"github.com/projectdiscovery/goflags"
 	"net"
 	"os"
@@ -420,8 +422,12 @@ func main() {
 	flagSet.BoolVarP(&p.PortMap, "portMap", "pm", false, "开启内网穿透")
 	flagSet.BoolVarP(&p.PortMapClient, "portMapClient", "pmc", false, "开启内网穿透-客户端")
 	flagSet.BoolVarP(&p.PortMapServer, "portMapServer", "pms", false, "开启内网穿透-服务端")
+	flagSet.BoolVarP(&p.PortMapClientSock5, "portMapClientSock5", "pmcs", false, "开启内网穿透-客户端Sock5")
 	flagSet.StringVarP(&p.Secret, "secret", "s", "SBScan", "穿透密钥，自定义")
 	flagSet.IntVarP(&p.PortServerListen, "portServerListen", "psl", 9188, "穿透服务端监听端口")
+	flagSet.IntVarP(&p.Sock5Port, "sock5Port", "sp", 9189, "Sock5监听端口")
+	flagSet.StringVarP(&p.Sock5AuthUsername, "sock5AuthUsername", "sau", "", "Sock5鉴权账号")
+	flagSet.StringVarP(&p.Sock5AuthPassword, "sock5AuthPassword", "sap", "", "Sock5鉴权密码")
 	flagSet.StringVarP(&p.ServerURI, "serverUri", "su", "", "穿透服务端地址，公网IP:端口")
 	flagSet.StringVarP(&p.PortClientMap, "portClientMap", "pcm", "", "穿透客户端映射字典，多个英文逗号隔开，格式：8080-127.0.0.1:8080,9000-192.168.188.1:9000")
 	flagSet.Parse()
@@ -443,7 +449,7 @@ func main() {
 				Port: uint16(p.PortServerListen),
 			})
 			<-forever
-		} else if p.PortMapClient {
+		} else if p.PortMapClient || p.PortMapClientSock5 {
 			// 客户端
 			fmt.Println("[*]启动内网穿客户端")
 			if p.ServerURI == "" {
@@ -451,28 +457,38 @@ func main() {
 				return
 			}
 
-			if p.PortClientMap == "" {
-				fmt.Println("穿透客户端映射字典不能为空！")
-				return
-			}
-
 			var clientMap []plugin_port_map.ClientMapConfig
-			for _, v := range strings.Split(p.PortClientMap, ",") {
-				val := strings.Split(v, "-")
-				_p, _ := strconv.Atoi(val[0])
-				_h := val[1]
-				clientMap = append(clientMap, plugin_port_map.ClientMapConfig{
-					Inner: _h,
-					Outer: uint16(_p),
-				})
+			clientMapArr := strings.Split(p.PortClientMap, ",")
+			if len(clientMapArr) > 0 {
+				for _, v := range clientMapArr {
+					if v != "" {
+						val := strings.Split(v, "-")
+						_p, _ := strconv.Atoi(val[0])
+						_h := val[1]
+						clientMap = append(clientMap, plugin_port_map.ClientMapConfig{
+							Inner: _h,
+							Outer: uint16(_p),
+						})
+					}
+				}
 			}
 
+			forever := make(chan bool)
+			if p.PortMapClientSock5 {
+				fmt.Println("[*]启动Sock5")
+				sock5Host := fmt.Sprintf(`127.0.0.1:%d`, p.Sock5Port)
+				go plugin_sock5.DoSock5(socks5.Config{
+					LocalAddr: sock5Host,
+					Username:  p.Sock5AuthUsername,
+					Password:  p.Sock5AuthPassword,
+				})
+				clientMap = append(clientMap, plugin_port_map.ClientMapConfig{Inner: sock5Host, Outer: uint16(p.Sock5Port)})
+				fmt.Println("[*]启动Sock5端口转发")
+			}
 			if len(clientMap) == 0 {
 				fmt.Println("穿透客户端映射字典不能为空！")
 				return
 			}
-
-			forever := make(chan bool)
 			go plugin_port_map.DoClient(&plugin_port_map.ClientConfig{
 				Key:    p.Secret,
 				Server: p.ServerURI,

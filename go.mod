@@ -18,6 +18,7 @@ require (
 	github.com/lib/pq v1.10.6
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/nasdf/ulimit v0.0.1
+	github.com/net-byte/socks5-server v1.0.9
 	github.com/olivere/elastic/v7 v7.0.32
 	github.com/projectdiscovery/goflags v0.0.8-0.20220412061559-5119d6086323
 	github.com/projectdiscovery/nuclei/v2 v2.7.1
@@ -197,7 +198,7 @@ require (
 	golang.org/x/net v0.0.0-20220524220425-1d687d428aca // indirect
 	golang.org/x/oauth2 v0.0.0-20211005180243-6b3c2da341f1 // indirect
 	golang.org/x/sync v0.0.0-20220513210516-0976fa681c29 // indirect
-	golang.org/x/sys v0.0.0-20220227234510-4e6760a101f9 // indirect
+	golang.org/x/sys v0.0.0-20220503163025-988cb79eb6c6 // indirect
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0 // indirect
 	golang.org/x/tools v0.1.6-0.20210726203631-07bc1bf47fb2 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
