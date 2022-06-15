@@ -257,7 +257,7 @@ func DoClient(config *ClientConfig) {
 			defer Recover()
 			defer time.Sleep(RetryTime)
 			log.Println("正在连接服务器...")
-			serverConn, err := net.Dial("tcp", config.Server)
+			serverConn, err := net.DialTimeout("tcp", config.Server, 6*time.Second)
 			if err != nil {
 				return
 			}

@@ -451,7 +451,6 @@ func main() {
 			<-forever
 		} else if p.PortMapClient || p.PortMapClientSock5 {
 			// 客户端
-			fmt.Println("[*]启动内网穿客户端")
 			if p.ServerURI == "" {
 				fmt.Println("穿透服务端地址不能为空！")
 				return
@@ -483,7 +482,11 @@ func main() {
 					Password:  p.Sock5AuthPassword,
 				})
 				clientMap = append(clientMap, plugin_port_map.ClientMapConfig{Inner: sock5Host, Outer: uint16(p.Sock5Port)})
+				time.Sleep(1 * time.Second)
 				fmt.Println("[*]启动Sock5端口转发")
+				fmt.Println("[*]启动内网穿客户端")
+			} else {
+				fmt.Println("[*]启动内网穿客户端")
 			}
 			if len(clientMap) == 0 {
 				fmt.Println("穿透客户端映射字典不能为空！")
