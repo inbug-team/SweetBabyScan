@@ -18,6 +18,7 @@ import (
 	"github.com/inbug-team/SweetBabyScan/core/tasks/task_scan_vul"
 	"github.com/inbug-team/SweetBabyScan/core/tasks/task_scan_weak"
 	"github.com/inbug-team/SweetBabyScan/initializes"
+	"github.com/inbug-team/SweetBabyScan/initializes/initialize_screenshot"
 	"github.com/inbug-team/SweetBabyScan/models"
 	"github.com/inbug-team/SweetBabyScan/utils"
 	"github.com/jedib0t/go-pretty/v6/table"
@@ -35,7 +36,7 @@ var isScreen = false
 
 func init() {
 	os.Mkdir("./static", 0777)
-	isScreen = initializes.InitAll()
+	initializes.InitAll()
 }
 
 // 过滤函数
@@ -154,6 +155,12 @@ func generatePwd(pwdPrefix, pwdCenter, pwdSuffix string) (passwords []string) {
 func doTask(p models.Params) {
 	fmt.Println("Loading......，Please be patient !")
 	now := time.Now()
+
+	isScreen = initialize_screenshot.InitScreenShot()
+
+	if p.IsScreen {
+		p.IsScreen = isScreen
+	}
 
 	// 定义保存文件
 	fileDate := now.Format("20060102150405")
@@ -363,8 +370,8 @@ func main() {
 
 	flagSet := goflags.NewFlagSet()
 
-	flagSet.BoolVarP(&p.IsLog, "isLog", "il", true, "是否显示日志")
-	flagSet.BoolVarP(&p.IsScreen, "isScreen", "is", isScreen, "是否启用截图")
+	flagSet.BoolVarP(&p.IsLog, "isLog", "il", true, "显示日志")
+	flagSet.BoolVarP(&p.IsScreen, "isScreen", "is", true, "启用截图")
 	flagSet.StringVarP(&p.OutputExcel, "outputExcel", "oe", "", "指定保存excel文件路径[以.xlsx结尾]")
 	flagSet.StringVarP(&p.OutputTxt, "outputTxt", "ot", "", "指定保存txt文件路径[以.txt结尾]")
 	flagSet.StringVarP(&p.Host, "host", "h", "192.168.0.0/16,172.16.0.0/12,10.0.0.0/8", "检测网段或者txt文件[以.txt结尾，一行一组回车换行]")
@@ -384,8 +391,8 @@ func main() {
 	flagSet.IntVarP(&p.WorkerScanSite, "workerScanSite", "wss", runtime.NumCPU()*2, "爬虫并发")
 	flagSet.IntVarP(&p.TimeOutScanSite, "timeOutScanSite", "tss", 3, "爬虫超时")
 	flagSet.IntVarP(&p.TimeOutScreen, "timeOutScreen", "ts", 60, "截图超时")
-	flagSet.BoolVarP(&p.ListPocNuclei, "listPocNuclei", "lpn", false, "是否列举Poc Nuclei")
-	flagSet.BoolVarP(&p.ListPocXray, "ListPocXray", "lpx", false, "是否列举Poc Xray")
+	flagSet.BoolVarP(&p.ListPocNuclei, "listPocNuclei", "lpn", false, "列举Poc Nuclei")
+	flagSet.BoolVarP(&p.ListPocXray, "ListPocXray", "lpx", false, "列举Poc Xray")
 	flagSet.StringVarP(&p.FilterPocName, "filterPocName", "fpn", "", "筛选POC名称，多个关键字英文逗号隔开")
 	flagSet.StringVarP(&p.FilterVulLevel, "filterVulLevel", "fvl", "", "筛选POC严重等级：critical[严重] > high[高危] > medium[中危] > low[低危] > info[信息]、unknown[未知]、all[全部]，多个关键字英文逗号隔开")
 	flagSet.IntVarP(&p.TimeOutScanPocNuclei, "timeOutScanPocNuclei", "tspn", 6, "PocNuclei扫描超时")
@@ -402,20 +409,19 @@ func main() {
 	flagSet.StringVarP(&p.APass, "aPass", "ap", "", "追加弱口令密码字典[以.txt结尾]")
 	flagSet.StringVarP(&p.WUser, "wUser", "wu", "", "覆盖弱口令账号字典[以.txt结尾]")
 	flagSet.StringVarP(&p.WPass, "wPass", "wp", "", "覆盖弱口令密码字典[以.txt结尾]")
-	flagSet.BoolVarP(&p.IsAPass, "isAPass", "iap", false, "是否追加弱口令生成器")
-	flagSet.BoolVarP(&p.IsWPass, "isWPass", "iwp", false, "是否覆盖弱口令生成器")
+	flagSet.BoolVarP(&p.IsAPass, "isAPass", "iap", false, "追加弱口令生成器")
+	flagSet.BoolVarP(&p.IsWPass, "isWPass", "iwp", false, "覆盖弱口令生成器")
 	flagSet.StringVarP(&p.PasswordPrefix, "passwordPrefix", "pp", "", "密码前缀，多个英文逗号分隔")
 	flagSet.StringVarP(&p.PasswordCenter, "passwordCenter", "pc", "", "密码中位，多个英文逗号分隔")
 	flagSet.StringVarP(&p.PasswordSuffix, "passwordSuffix", "ps", "", "密码后缀，多个英文逗号分隔")
-	flagSet.BoolVarP(&p.PortForward, "portForward", "pf", false, "是否开启端口转发")
+	flagSet.BoolVarP(&p.PortForward, "portForward", "pf", false, "开启端口转发")
 	flagSet.StringVarP(&p.SourceHost, "sourceHost", "sh", "", "目标转发主机")
 	flagSet.IntVarP(&p.LocalPort, "localPort", "lp", 0, "本机代理端口")
-	flagSet.BoolVarP(&p.PortMap, "portMap", "pm", false, "是否开启内网穿透")
-	flagSet.BoolVarP(&p.PortMapClient, "portMapClient", "pmc", false, "是否开启内网穿透-客户端")
-	flagSet.BoolVarP(&p.PortMapServer, "portMapServer", "pms", false, "是否开启内网穿透-服务端")
+	flagSet.BoolVarP(&p.PortMap, "portMap", "pm", false, "开启内网穿透")
+	flagSet.BoolVarP(&p.PortMapClient, "portMapClient", "pmc", false, "开启内网穿透-客户端")
+	flagSet.BoolVarP(&p.PortMapServer, "portMapServer", "pms", false, "开启内网穿透-服务端")
 	flagSet.StringVarP(&p.Secret, "secret", "s", "SBScan", "穿透密钥，自定义")
 	flagSet.IntVarP(&p.PortServerListen, "portServerListen", "psl", 9188, "穿透服务端监听端口")
-	flagSet.StringVarP(&p.PortServerOpen, "portServerOpen", "pso", "", "穿透服务端映射端口，多个英文逗号隔开")
 	flagSet.StringVarP(&p.ServerURI, "serverUri", "su", "", "穿透服务端地址，公网IP:端口")
 	flagSet.StringVarP(&p.PortClientMap, "portClientMap", "pcm", "", "穿透客户端映射字典，多个英文逗号隔开，格式：8080-127.0.0.1:8080,9000-192.168.188.1:9000")
 	flagSet.Parse()
@@ -430,30 +436,16 @@ func main() {
 	} else if p.PortMap {
 		if p.PortMapServer {
 			// 服务端
-			if p.PortServerOpen == "" {
-				fmt.Println("映射端口不能为空！")
-				return
-			}
-			var openPorts []uint16
-			for _, v := range strings.Split(p.PortServerOpen, ",") {
-				_p, _ := strconv.Atoi(v)
-				openPorts = append(openPorts, uint16(_p))
-			}
-
-			if len(openPorts) == 0 {
-				fmt.Println("映射端口不能为空！")
-				return
-			}
-
+			fmt.Println("[*]启动内网穿透服务端")
 			forever := make(chan bool)
 			go plugin_port_map.DoServer(&plugin_port_map.ServerConfig{
 				Key:  p.Secret,
 				Port: uint16(p.PortServerListen),
-				Open: openPorts,
 			})
 			<-forever
 		} else if p.PortMapClient {
 			// 客户端
+			fmt.Println("[*]启动内网穿客户端")
 			if p.ServerURI == "" {
 				fmt.Println("穿透服务端地址不能为空！")
 				return

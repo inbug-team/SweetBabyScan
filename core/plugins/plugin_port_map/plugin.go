@@ -2,20 +2,21 @@ package plugin_port_map
 
 import (
 	"bytes"
-	"crypto/md5"
+	"context"
+	"encoding/binary"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"net"
-	"os"
+	"sync"
 	"time"
 )
 
 // 服务端配置
 type ServerConfig struct {
-	Key  string   `json:"key"`
-	Port uint16   `json:"port"`
-	Open []uint16 `json:"open"`
+	Key  string `json:"key"`
+	Port uint16 `json:"port"`
 }
 
 // 客户端map配置
@@ -31,7 +32,7 @@ type ClientConfig struct {
 	Map    []ClientMapConfig `json:"map"`
 }
 
-// 总配置
+// 配置
 type Config struct {
 	Server *ServerConfig `json:"server"`
 	Client *ClientConfig `json:"client"`
@@ -49,143 +50,154 @@ const (
 	Error
 	// 处理成功
 	Success
-	// 空闲命令，什么也不做
-	IDLE
+	// 空闲命令 什么也不做
+	Idle
 	// 退出命令
-	KILL
+	Kill
 )
 
 const (
-	// IdleTime 心跳检测时间
-	IdleTime = time.Second * 10
+	// 断线重连时间
+	RetryTime          = time.Second
+	TcpKeepAlivePeriod = 30 * time.Second
 )
 
-// KeyMd5 获取key的md5
-func KeyMd5(key string) []byte {
-	d5 := md5.New()
-	d5.Write([]byte(key))
-	return d5.Sum(nil)
+func Recover() {
+	if err := recover(); err != nil {
+		log.Println(err)
+	}
 }
 
-// DoServer 服务端处理
+type Resource struct {
+	Listener net.Listener
+	ConnChan chan net.Conn
+	Running  bool
+}
+
+// 服务端处理
 func DoServer(config *ServerConfig) {
 	if config == nil {
 		return
 	}
-	clientMap := make(map[uint16]net.Conn)
-	chanMap := make(map[uint16]chan net.Conn)
-	// 守护客户端连接
-	go func() {
-		rt := make([]byte, 1)
-		for {
-			time.Sleep(IdleTime)
-			for p, c := range clientMap {
-				_, err := c.Write([]byte{IDLE})
-				if err != nil {
-					log.Println(err)
-					delete(clientMap, p)
-					if c != nil {
-						c.Close()
-					}
-					log.Println("删除连接", p)
-					continue
-				}
-				_, err = io.ReadAtLeast(c, rt, 1)
-				if err != nil || rt[0] != Success {
-					log.Println(err)
-					delete(clientMap, p)
-					if c != nil {
-						c.Close()
-					}
-					log.Println("删除连接", p)
-					continue
-				}
-			}
-
-		}
-	}()
-	// 监听映射端口
-	var doListen = func(port uint16) {
-		chanMap[port] = make(chan net.Conn)
-		lis, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%v", port))
-		if err != nil {
-			panic(err)
-		}
-		defer lis.Close()
-		for {
-			conn, err := lis.Accept()
-			if err != nil {
-				log.Println(err)
-				continue
-			}
-			client := clientMap[port]
-			if client != nil {
-				// 新连接，发送命令
-				client.Write([]byte{NewSocket})
-				client.Write([]byte{uint8(port >> 8), uint8(port & 0xff)})
-				chanMap[port] <- conn
-			} else {
-				conn.Close()
-			}
-		}
-	}
-	// 监听所有映射端口
-	for _, p := range config.Open {
-		go doListen(p)
-	}
 	lis, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%v", config.Port))
 	if err != nil {
-		panic(err)
+		log.Println("Initialization error", err)
+		return
 	}
 	defer lis.Close()
+	// 端口-资源对应
+	var resourceMap = make(map[uint16]*Resource)
+	var resourceMu sync.Mutex
+	// 处理对客户端的监听
+	var doListen = func(ctx context.Context, clientConn net.Conn, port uint16) {
+		if resourceMap[port] == nil {
+			return
+		}
+		defer func() {
+			Recover()
+			defer Recover()
+			close(resourceMap[port].ConnChan)
+			resourceMap[port].Listener.Close()
+			resourceMu.Lock()
+			delete(resourceMap, port)
+			resourceMu.Unlock()
+			log.Println("关闭端口", port)
+		}()
+		log.Println("启动端口", port)
+		var rsc = resourceMap[port]
+		var buffer bytes.Buffer
+		buffer.Write([]byte{NewSocket})
+		buffer.Write([]byte{uint8(port >> 8), uint8(port & 0xff)})
+		openCmd := buffer.Bytes()
+		buffer.Reset()
+		go func() {
+			defer Recover()
+			for {
+				outConn, err := rsc.Listener.Accept()
+				if err != nil {
+					return
+				}
+				// 通知客户端建立连接
+				clientConn.Write(openCmd)
+				rsc.ConnChan <- outConn
+			}
+		}()
+		<-ctx.Done()
+	}
+	// 处理客户端新连接
 	var doConn = func(conn net.Conn) {
+		defer Recover()
+		defer conn.Close()
 		var cmd = make([]byte, 1)
-		io.ReadAtLeast(conn, cmd, 1)
+		if _, err = io.ReadAtLeast(conn, cmd, 1); err != nil {
+			return
+		}
 		switch cmd[0] {
 		case Start:
 			// 初始化
-			// 读取keyMd5
-			rKeyMd5 := make([]byte, 16)
-			io.ReadAtLeast(conn, rKeyMd5, 16)
-			// 读取端口
-			for {
-				portBuf := make([]byte, 2)
-				io.ReadAtLeast(conn, portBuf, 2)
-				prt := uint16(portBuf[0])<<8 + uint16(portBuf[1])
-				if prt == 0 {
-					break
-				}
-				if _, ok := clientMap[prt]; ok {
-					// 端口被用了
-					conn.Write([]byte{Error})
-					msg := []byte(fmt.Sprintf("端口(%v)占用！", prt))
-					ml := uint16(len(msg))
-					conn.Write([]byte{uint8(ml >> 8), uint8(ml & 0xff)})
-					conn.Write(msg)
-					conn.Close()
-					return
-				}
-				clientMap[prt] = conn
-				log.Println("启动端口", prt)
-			}
-			if !bytes.Equal(rKeyMd5, KeyMd5(config.Key)) {
-				conn.Write([]byte{Error})
-				msg := []byte("Key认证失败！")
-				ml := uint16(len(msg))
-				conn.Write([]byte{uint8(ml >> 8), uint8(ml & 0xff)})
-				conn.Write(msg)
-				conn.Close()
+			infoLen := make([]byte, 8)
+			if _, err = io.ReadAtLeast(conn, infoLen, 8); err != nil {
 				return
 			}
+			var iLen = (uint64(infoLen[0]) << 56) | (uint64(infoLen[1]) << 48) | (uint64(infoLen[2]) << 40) | (uint64(infoLen[3]) << 32) | (uint64(infoLen[4]) << 24) | (uint64(infoLen[5]) << 16) | (uint64(infoLen[6]) << 8) | (uint64(infoLen[7]))
+			if iLen > 1024*1024 {
+				// 限制消息最大内存使用量 1M
+				return
+			}
+			var clientInfo = make([]byte, iLen)
+			if _, err = io.ReadAtLeast(conn, clientInfo, int(iLen)); err != nil {
+				return
+			}
+			var clientCfg ClientConfig
+			if nil != json.Unmarshal(clientInfo, &clientCfg) {
+				return
+			}
+			if clientCfg.Key != config.Key {
+				conn.Write([]byte{Error})
+				return
+			}
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+			// 打开端口
+			for _, cc := range clientCfg.Map {
+				clientServer, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%v", cc.Outer))
+				if err != nil {
+					log.Println("启动端口失败，错误原因", err)
+					conn.Write([]byte{Error})
+					return
+				}
+				resourceMu.Lock()
+				resourceMap[cc.Outer] = &Resource{
+					Listener: clientServer,
+					ConnChan: make(chan net.Conn),
+					Running:  true,
+				}
+				resourceMu.Unlock()
+				go doListen(ctx, conn, cc.Outer)
+			}
 			conn.Write([]byte{Success})
+			for {
+				n, err := conn.Read(cmd)
+				if err != nil {
+					return
+				}
+				if n != 0 {
+					switch cmd[0] {
+					case Kill:
+						return
+					case Idle:
+						continue
+					}
+				}
+			}
 		case NewConn:
 			// 客户端新建立连接
 			sport := make([]byte, 2)
 			io.ReadAtLeast(conn, sport, 2)
 			pt := (uint16(sport[0]) << 8) + uint16(sport[1])
-			client := clientMap[pt]
+			client := resourceMap[pt]
 			if client != nil {
-				if rConn, ok := <-chanMap[pt]; ok {
+				if rConn, ok := <-client.ConnChan; ok {
 					go io.Copy(rConn, conn)
 					io.Copy(conn, rConn)
 					conn.Close()
@@ -194,27 +206,11 @@ func DoServer(config *ServerConfig) {
 			} else {
 				conn.Close()
 			}
-		case KILL:
-			// 退出
-			rKeyMd5 := make([]byte, 16)
-			io.ReadAtLeast(conn, rKeyMd5, 16)
-			if bytes.Equal(rKeyMd5, KeyMd5(config.Key)) {
-				log.Println("退出！")
-				conn.Write([]byte{Success})
-				conn.Close()
-				os.Exit(0)
-			} else {
-				conn.Write([]byte{Error})
-				msg := []byte("Key认证失败！")
-				ml := uint16(len(msg))
-				conn.Write([]byte{uint8(ml >> 8), uint8(ml & 0xff)})
-				conn.Write(msg)
-				conn.Close()
-			}
 		default:
 			conn.Close()
 		}
 	}
+
 	for {
 		remoteConn, err := lis.Accept()
 		if err != nil {
@@ -223,6 +219,7 @@ func DoServer(config *ServerConfig) {
 		}
 		go doConn(remoteConn)
 	}
+
 }
 
 // DoClient 客户端处理
@@ -230,64 +227,91 @@ func DoClient(config *ClientConfig) {
 	if config == nil {
 		return
 	}
-	serverConn, err := net.Dial("tcp", config.Server)
-	if err != nil {
-		panic(err)
-	}
-	defer serverConn.Close()
 	var portMap = make(map[uint16]string, len(config.Map))
 	for _, m := range config.Map {
 		portMap[m.Outer] = m.Inner
 	}
-	// 发送key
-	serverConn.Write([]byte{Start})
-	serverConn.Write(KeyMd5(config.Key))
-	// 发送端口信息
-	for p := range portMap {
-		serverConn.Write([]byte{uint8(p >> 8), uint8(p & 0xff)})
-	}
-	serverConn.Write([]byte{0, 0})
+	var isContinue = true
 	// 新建连接处理
 	var doConn = func(conn net.Conn, sport uint16, sp []byte) {
+		defer Recover()
 		defer conn.Close()
 		localConn, err := net.Dial("tcp", portMap[sport])
+		localConn.(*net.TCPConn).SetKeepAlive(true)
+		localConn.(*net.TCPConn).SetKeepAlivePeriod(TcpKeepAlivePeriod)
 		if err != nil {
 			log.Println(err)
 			return
 		}
 		defer localConn.Close()
-		conn.Write([]byte{NewConn})
-		conn.Write(sp)
+		var buffer bytes.Buffer
+		buffer.Write([]byte{NewConn})
+		buffer.Write(sp)
+		conn.Write(buffer.Bytes())
+		buffer.Reset()
 		go io.Copy(conn, localConn)
 		io.Copy(localConn, conn)
 	}
-	// 进入指令读取循环
-	var cmd = make([]byte, 1)
-	for {
-		serverConn.Read(cmd)
-		switch cmd[0] {
-		case Error:
-			// 处理出错
-			msgLen := make([]byte, 2)
-			io.ReadAtLeast(serverConn, msgLen, 2)
-			ml := int((uint16(msgLen[0]) << 8) + uint16(msgLen[1]))
-			msg := make([]byte, ml)
-			io.ReadAtLeast(serverConn, msg, ml)
-			log.Println(string(msg))
-			return
-		case NewSocket:
-			// 新建连接
-			// 读取远端端口
-			sp := make([]byte, 2)
-			io.ReadAtLeast(serverConn, sp, 2)
-			sport := uint16(sp[0])<<8 + uint16(sp[1])
-			conn, err := net.Dial("tcp", config.Server)
+	for isContinue {
+		func() {
+			defer Recover()
+			defer time.Sleep(RetryTime)
+			log.Println("正在连接服务器...")
+			serverConn, err := net.Dial("tcp", config.Server)
 			if err != nil {
-				panic(err)
+				return
 			}
-			go doConn(conn, sport, sp)
-		case IDLE:
-			serverConn.Write([]byte{Success})
-		}
+			defer serverConn.Close()
+			log.Println("连接服务器成功")
+			clientInfo, err := json.Marshal(config)
+			// 添加字节缓冲
+			var buffer bytes.Buffer
+			// 发送客户端信息
+			buffer.Write([]byte{Start})
+			binary.Write(&buffer, binary.BigEndian, uint64(len(clientInfo)))
+			buffer.Write(clientInfo)
+			serverConn.Write(buffer.Bytes())
+			buffer.Reset()
+			// 读取返回信息
+			// SUCCESS / ERROR
+			var recvCmd = make([]byte, 1)
+			io.ReadAtLeast(serverConn, recvCmd, 1)
+			if recvCmd[0] != Success {
+				// 密码错误
+				log.Println("鉴权失败")
+				isContinue = false
+				return
+			}
+			log.Println("认证成功")
+			for _, cc := range config.Map {
+				log.Printf("%v->:%v\n", cc.Inner, cc.Outer)
+			}
+			recvCmd[0] = Idle
+			// 进入指令读取循环
+			for {
+				_, err = serverConn.Read(recvCmd)
+				if err != nil {
+					return
+				}
+				switch recvCmd[0] {
+				case NewSocket:
+					// 新建连接
+					// 读取远端端口
+					sp := make([]byte, 2)
+					io.ReadAtLeast(serverConn, sp, 2)
+					sport := uint16(sp[0])<<8 + uint16(sp[1])
+					conn, err := net.Dial("tcp", config.Server)
+					if err != nil {
+						return
+					}
+					go doConn(conn, sport, sp)
+				case Idle:
+					_, err := serverConn.Write([]byte{Success})
+					if err != nil {
+						return
+					}
+				}
+			}
+		}()
 	}
 }
