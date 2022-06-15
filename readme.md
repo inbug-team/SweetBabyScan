@@ -119,6 +119,10 @@ GOOS=linux GOARCH=386 go build -ldflags="-s -w" -trimpath -o SbScan
 
 > ./SbScan -h=192.168.188.1/24 -iwp -pp=test,Test -pc=@ -ps=123
 
+- 端口转发
+
+> ./SbScan --pf -sh=192.168.188.1:8080 -lp=8080
+
 - 内网穿透公网服务器端启动，启动端口默认9188可自定义
 
 > ./SbScan --pm --pms -secret=自定义密码
