@@ -119,6 +119,23 @@ GOOS=linux GOARCH=386 go build -ldflags="-s -w" -trimpath -o SbScan
 
 > ./SbScan -h=192.168.188.1/24 -iwp -pp=test,Test -pc=@ -ps=123
 
+- 内网穿透公网服务器端启动，启动端口默认9188可自定义
+
+> ./SbScan --pm --pms -secret=自定义密码
+
+- 内网客户端端口映射，TCP端口转发
+
+> ./SbScan --pm --pmc -secret=自定义密码 -su=公网IP:9188 -pcm=8081-127.0.0.1:8080,8082-127.0.0.1:8080,8088-192.168.166.55:80
+
+```text
+127.0.0.1:8080 映射到 公网8081
+127.0.0.1:8080 映射到 公网8082
+192.168.166.55:80 映射到 公网8088
+```
+
+- 内网Sock5穿透
+
+> ./SbScan --pm --pmc --pmcs -secret=自定义密码 -su=公网IP:9188
 
 ### 三、参数
 
@@ -131,15 +148,15 @@ Usage:
   ./SbScan [flags]
 
 Flags:
-   -il, -isLog                         是否显示日志 (default true)
-   -is, -isScreen                      是否启用截图 (default true)
+   -il, -isLog                         显示日志 (default true)
+   -is, -isScreen                      启用截图 (default true)
    -oe, -outputExcel string            指定保存excel文件路径[以.xlsx结尾]
    -ot, -outputTxt string              指定保存txt文件路径[以.txt结尾]
    -h, -host string                    检测网段或者txt文件[以.txt结尾，一行一组回车换行] (default "192.168.0.0/16,172.16.0.0/12,10.0.0.0/8")
    -p, -port string                    端口范围：tiny[精简]、web[WEB服务]、normal[常用]、database[数据库]、caffe[咖啡厅/酒店/机场]、iot[物联网]、all[全部]、自定义 (default "web")
    -pt, -protocol string               端口范围：tcp、udp、tcp+udp (default "tcp+udp")
    -hb, -hostBlack string              排除网段
-   -msh, -methodScanHost string        验存方式：PING、ICMP (default "PING")
+   -msh, -methodScanHost string        验存方式：PING、ICMP (default "ICMP")
    -wsh, -workerScanHost int           存活并发 (default 250)
    -tsh, -timeOutScanHost int          存活超时 (default 3)
    -r, -rarity int                     优先级 (default 10)
@@ -152,8 +169,8 @@ Flags:
    -wss, -workerScanSite int           爬虫并发 (default 16)
    -tss, -timeOutScanSite int          爬虫超时 (default 3)
    -ts, -timeOutScreen int             截图超时 (default 60)
-   -lpn, -listPocNuclei                是否列举Poc Nuclei
-   -lpx, -ListPocXray                  是否列举Poc Xray
+   -lpn, -listPocNuclei                列举Poc Nuclei
+   -lpx, -ListPocXray                  列举Poc Xray
    -fpn, -filterPocName string         筛选POC名称，多个关键字英文逗号隔开
    -fvl, -filterVulLevel string        筛选POC严重等级：critical[严重] > high[高危] > medium[中危] > low[低危] > info[信息]、unknown[未知]、all[全部]，多个关键字英文逗号隔开
    -tspn, -timeOutScanPocNuclei int    PocNuclei扫描超时 (default 6)
@@ -170,18 +187,38 @@ Flags:
    -ap, -aPass string                  追加弱口令密码字典[以.txt结尾]
    -wu, -wUser string                  覆盖弱口令账号字典[以.txt结尾]
    -wp, -wPass string                  覆盖弱口令密码字典[以.txt结尾]
-   -iap, -isAPass                      是否追加弱口令生成器
-   -iwp, -isWPass                      是否覆盖弱口令生成器
+   -iap, -isAPass                      追加弱口令生成器
+   -iwp, -isWPass                      覆盖弱口令生成器
    -pp, -passwordPrefix string         密码前缀，多个英文逗号分隔
    -pc, -passwordCenter string         密码中位，多个英文逗号分隔
    -ps, -passwordSuffix string         密码后缀，多个英文逗号分隔
+   -pf, -portForward                   开启端口转发
+   -sh, -sourceHost string             目标转发主机
+   -lp, -localPort int                 本机代理端口
+   -pm, -portMap                       开启内网穿透
+   -pmc, -portMapClient                开启内网穿透-客户端
+   -pms, -portMapServer                开启内网穿透-服务端
+   -pmcs, -portMapClientSock5          开启内网穿透-客户端Sock5
+   -s, -secret string                  穿透密钥，自定义 (default "SBScan")
+   -psl, -portServerListen int         穿透服务端监听端口 (default 9188)
+   -sp, -sock5Port int                 Sock5监听端口 (default 9189)
+   -sau, -sock5AuthUsername string     Sock5鉴权账号
+   -sap, -sock5AuthPassword string     Sock5鉴权密码
+   -su, -serverUri string              穿透服务端地址，公网IP:端口
+   -pcm, -portClientMap string         穿透客户端映射字典，多个英文逗号隔开，格式：8080-127.0.0.1:8080,9000-192.168.188.1:9000
 ```
 
 ### 四、更新日志
+
 <details>
   <summary>更新日志👇🏻点击展开</summary>
 
 ```text
+2022-06-15（v0.0.7）
+    [+]1.端口转发
+    [+]2.内网TCP端口映射转发/内网穿透
+    [+]3.Sock5代理/内网穿透
+    [+]4.新增Linux ARM编译，可结合termux在安卓端运行
 2022-06-09（v0.0.6）
     [+]1.弱口令生成器
     [+]2.支持excel+txt文件导出
