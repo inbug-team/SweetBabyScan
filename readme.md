@@ -8,7 +8,17 @@
 
 ### 工具定位
 
-内网资产探测、通用漏洞扫描、弱口令爆破
+内网资产探测、通用漏洞扫描、弱口令爆破、端口转发、内网穿透、SOCK5
+
+- 主机存活检测，PING/ICMP
+- 端口服务扫描
+- 网站爬虫截图，CMS识别
+- Nuclei & Xray POC
+- 网卡识别、域控识别、SMBGhost、MS17017
+- 弱口令爆破：FTP/SSH/SMB/SNMP/Redis/MongoDB/MySQL/SQLServer/PostGreSQL/ElasticSearch
+- TCP端口转发
+- 内网穿透
+- SOCK5穿透
 
 ### 工具截图
 
