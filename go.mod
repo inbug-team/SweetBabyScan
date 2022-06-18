@@ -24,6 +24,7 @@ require (
 	github.com/projectdiscovery/nuclei/v2 v2.7.1
 	github.com/projectdiscovery/wappalyzergo v0.0.42
 	github.com/satori/go.uuid v1.2.0
+	github.com/sijms/go-ora/v2 v2.4.24
 	github.com/stacktitan/smb v0.0.0-20190531122847-da9a425dceb8
 	github.com/xuri/excelize/v2 v2.6.0
 	go.mongodb.org/mongo-driver v1.9.1

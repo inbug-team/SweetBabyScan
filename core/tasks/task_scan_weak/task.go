@@ -80,6 +80,10 @@ func taskScanWeak(req models.Params, item models.WaitScanWeak, key string) {
 							status = plugin_scan_weak.CheckRDB("postgres", __item.Ip, __user, __pass, __port)
 						} else if _key == "sqlserver" {
 							status = plugin_scan_weak.CheckRDB("mssql", __item.Ip, __user, __pass, __port)
+						} else if _key == "oracle" {
+							status = plugin_scan_weak.CheckRDB("oracle", __item.Ip, __user, __pass, __port)
+						} else if _key == "memcached" {
+							status = plugin_scan_weak.CheckRDB("memcached", __item.Ip, __user, __pass, __port)
 						} else if _key == "ftp" {
 							status = plugin_scan_weak.CheckFTP(__item.Ip, __user, __pass, __port)
 						} else if _key == "elasticsearch" {

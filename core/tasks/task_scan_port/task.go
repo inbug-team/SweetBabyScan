@@ -106,6 +106,8 @@ func (t *taskScanPort) doDone(item interface{}) error {
 		service = "smb"
 	} else if result.ProbeName == "TerminalServer" || result.ProbeName == "TLSSessionReq" || result.ProbeName == "TerminalServerCookie" {
 		service = "rdp"
+	} else if result.ProbeName == "Memcache" || result.Service.Name == "memcached" || result.ProbeName == "memcached" {
+		service = "memcached"
 	}
 
 	data := models.ScanPort{

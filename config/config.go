@@ -41,10 +41,12 @@ var WorkerMap = map[string]int{
 	"ftp":           1,
 	"clickhouse":    4,
 	"elasticsearch": 4,
+	"oracle":        4,
+	"memcached":     4,
 }
 
 // 弱口令协议
-var Service = "ssh,smb,snmp,sqlserver,mysql,mongodb,postgres,redis,ftp,clickhouse,elasticsearch"
+var Service = "ssh,smb,snmp,sqlserver,mysql,mongodb,postgres,redis,ftp,clickhouse,elasticsearch,oracle,memcached"
 
 func init() {
 	err := json.Unmarshal([]byte(UAStr), &UA)

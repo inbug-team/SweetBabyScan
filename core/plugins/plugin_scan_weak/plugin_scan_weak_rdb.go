@@ -7,6 +7,9 @@ import (
 	_ "github.com/denisenkom/go-mssqldb"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
+	_ "github.com/sijms/go-ora/v2"
+	"net"
+	"strings"
 	"time"
 )
 
@@ -22,6 +25,10 @@ func CheckRDB(hostType, ip, user, pwd string, port uint) bool {
 		flag = checkMSSQL(ip, user, pwd, port)
 	case "clickhouse":
 		flag = checkClickHouse(ip, user, pwd, port)
+	case "oracle":
+		flag = checkOracle(ip, user, pwd, port)
+	case "memcached":
+		flag = checkMemcached(ip, user, pwd, port)
 	}
 
 	return flag
@@ -130,4 +137,49 @@ func checkClickHouse(ip, user, pwd string, port uint) bool {
 	}
 
 	return flag
+}
+
+// 检测oracle
+func checkOracle(ip, user, pwd string, port uint) (status bool) {
+	db, err := sql.Open(
+		"oracle",
+		fmt.Sprintf("oracle://%s:%s@%s:%d/orcl", user, pwd, ip, port),
+	)
+	if err == nil {
+		db.SetConnMaxLifetime(6 * time.Second)
+		db.SetConnMaxIdleTime(6 * time.Second)
+		db.SetMaxIdleConns(0)
+		defer db.Close()
+		err = db.Ping()
+		if err == nil {
+			status = true
+		}
+	}
+	return
+}
+
+// 检测memcached
+func checkMemcached(ip, user, pwd string, port uint) (status bool) {
+	client, err := net.DialTimeout("tcp", fmt.Sprintf("%s:%v", ip, port), 6*time.Second)
+	defer func() {
+		if client != nil {
+			client.Close()
+		}
+	}()
+	if err == nil {
+		err = client.SetDeadline(time.Now().Add(6 * time.Second))
+		if err == nil {
+			_, err = client.Write([]byte("stats\n"))
+			if err == nil {
+				rev := make([]byte, 1024)
+				n, err := client.Read(rev)
+				if err == nil {
+					if strings.Contains(string(rev[:n]), "STAT") {
+						status = true
+					}
+				}
+			}
+		}
+	}
+	return
 }
