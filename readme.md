@@ -15,7 +15,7 @@
 - 网站爬虫截图，CMS识别
 - Nuclei & Xray POC
 - 网卡识别、域控识别、SMBGhost、MS17017
-- 弱口令爆破：FTP/SSH/SMB/SNMP/Redis/MongoDB/MySQL/SQLServer/PostGreSQL/ElasticSearch
+- 弱口令爆破：FTP/SSH/SMB/SNMP/Redis/MongoDB/MySQL/SQLServer/PostGreSQL/ElasticSearch/Oracle/Memcached
 - TCP端口转发
 - 内网穿透
 - SOCK5穿透
@@ -196,7 +196,7 @@ Flags:
    -nsw, -noScanWeak                   跳过弱口令爆破
    -nsp, -noScanPoc                    跳过POC漏洞验证
    -nsv, -noScanVul                    跳过高危系统漏洞探测
-   -ssw, -serviceScanWeak string       指定爆破协议：ssh,smb,snmp,sqlserver,mysql,mongodb,postgres,redis,ftp,clickhouse,elasticsearch，多个协议英文逗号分隔，默认全部
+   -ssw, -serviceScanWeak string       指定爆破协议：ssh,smb,snmp,sqlserver,mysql,mongodb,postgres,redis,ftp,clickhouse,elasticsearch,oracle,memcached，多个协议英文逗号分隔，默认全部
    -au, -aUser string                  追加弱口令账号字典[以.txt结尾]
    -ap, -aPass string                  追加弱口令密码字典[以.txt结尾]
    -wu, -wUser string                  覆盖弱口令账号字典[以.txt结尾]
