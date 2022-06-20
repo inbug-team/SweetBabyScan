@@ -417,7 +417,7 @@ func main() {
 	flagSet.IntVarP(&p.TimeOutScanPocNuclei, "timeOutScanPocNuclei", "tspn", 6, "PocNuclei扫描超时")
 	flagSet.IntVarP(&p.WorkerScanPoc, "workerScanPoc", "wsPoc", 100, "Poc并发")
 	flagSet.IntVarP(&p.GroupScanWeak, "groupScanWeak", "gsw", 20, "爆破分组")
-	flagSet.StringVarP(&p.WorkerScanWeak, "workerScanWeak", "wsw", "ssh:1,smb:1,snmp:1,sqlserver:4,mysql:4,mongodb:4,postgres:4,redis:6,ftp:1,clickhouse:4,elasticsearch:4,oracle:4,memcached:4", "爆破并发，键值对形式，英文逗号分隔")
+	flagSet.StringVarP(&p.WorkerScanWeak, "workerScanWeak", "wsw", "ssh:1,smb:1,rdp:1,snmp:1,sqlserver:4,mysql:4,mongodb:4,postgres:4,redis:6,ftp:1,clickhouse:4,elasticsearch:4,oracle:4,memcached:4", "爆破并发，键值对形式，英文逗号分隔")
 	flagSet.IntVarP(&p.TimeOutScanWeak, "timeOutScanWeak", "tsw", 6, "爆破超时")
 	flagSet.BoolVarP(&p.NoScanHost, "noScanHost", "nsh", false, "跳过主机存活检测")
 	flagSet.BoolVarP(&p.NoScanWeak, "noScanWeak", "nsw", false, "跳过弱口令爆破")

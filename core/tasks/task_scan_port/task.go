@@ -104,7 +104,7 @@ func (t *taskScanPort) doDone(item interface{}) error {
 		service = "snmp"
 	} else if result.ProbeName == "SMBProgNeg" {
 		service = "smb"
-	} else if result.ProbeName == "TerminalServer" || result.ProbeName == "TLSSessionReq" || result.ProbeName == "TerminalServerCookie" {
+	} else if result.Port == 3389 {
 		service = "rdp"
 	} else if result.ProbeName == "Memcache" || result.Service.Name == "memcached" || result.ProbeName == "memcached" {
 		service = "memcached"

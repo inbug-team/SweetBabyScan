@@ -13,10 +13,13 @@ require (
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/google/cel-go v0.11.4
 	github.com/gosnmp/gosnmp v1.35.0
+	github.com/huin/asn1ber v0.0.0-20120622192748-af09f62e6358
+	github.com/icodeface/tls v0.0.0-20190904083142-17aec93c60e5
 	github.com/jedib0t/go-pretty/v6 v6.3.1
 	github.com/jlaffaye/ftp v0.0.0-20220524001917-dfa1e758f3af
 	github.com/lib/pq v1.10.6
 	github.com/logrusorgru/aurora v2.0.3+incompatible
+	github.com/lunixbochs/struc v0.0.0-20200707160740-784aaebc1d40
 	github.com/nasdf/ulimit v0.0.1
 	github.com/net-byte/socks5-server v1.0.9
 	github.com/olivere/elastic/v7 v7.0.32

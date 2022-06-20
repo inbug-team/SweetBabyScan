@@ -15,7 +15,7 @@
 - 网站爬虫截图，CMS识别
 - Nuclei & Xray POC
 - 网卡识别、域控识别、SMBGhost、MS17017
-- 弱口令爆破：FTP/SSH/SMB/SNMP/Redis/MongoDB/MySQL/SQLServer/PostGreSQL/ElasticSearch/Oracle/Memcached
+- 弱口令爆破：FTP/SSH/SMB/SNMP/Redis/MongoDB/MySQL/SQLServer/PostGreSQL/ElasticSearch/Oracle/Memcached/RDP
 - TCP端口转发
 - 内网穿透
 - SOCK5穿透
@@ -190,13 +190,13 @@ Flags:
    -tspn, -timeOutScanPocNuclei int    PocNuclei扫描超时 (default 6)
    -wsPoc, -workerScanPoc int          Poc并发 (default 100)
    -gsw, -groupScanWeak int            爆破分组 (default 20)
-   -wsw, -workerScanWeak string        爆破并发，键值对形式，英文逗号分隔 (default "ssh:1,smb:1,snmp:1,sqlserver:4,mysql:4,mongodb:4,postgres:4,redis:6,ftp:1,clickhouh:4")
+   -wsw, -workerScanWeak string        爆破并发，键值对形式，英文逗号分隔 (default "ssh:1,smb:1,rdp:1,snmp:1,sqlserver:4,mysql:4,mongodb:4,postgres:4,redis:6,ftp:1,clcsearch:4,oracle:4,memcached:4")
    -tsw, -timeOutScanWeak int          爆破超时 (default 6)
    -nsh, -noScanHost                   跳过主机存活检测
    -nsw, -noScanWeak                   跳过弱口令爆破
    -nsp, -noScanPoc                    跳过POC漏洞验证
    -nsv, -noScanVul                    跳过高危系统漏洞探测
-   -ssw, -serviceScanWeak string       指定爆破协议：ssh,smb,snmp,sqlserver,mysql,mongodb,postgres,redis,ftp,clickhouse,elasticsearch,oracle,memcached，多个协议英文逗号分隔，默认全部
+   -ssw, -serviceScanWeak string       指定爆破协议：ssh,smb,rdp,snmp,sqlserver,mysql,mongodb,postgres,redis,ftp,clickhouse,elasticsearch,oracle,memcached，多个协议英文逗号分隔，默认全部
    -au, -aUser string                  追加弱口令账号字典[以.txt结尾]
    -ap, -aPass string                  追加弱口令密码字典[以.txt结尾]
    -wu, -wUser string                  覆盖弱口令账号字典[以.txt结尾]
@@ -228,6 +228,10 @@ Flags:
   <summary>更新日志👇🏻点击展开</summary>
 
 ```text
+2022-06-20（v0.0.8）
+    [+]1.Oracle爆破
+    [+]2.Memcached爆破
+    [+]3.RDP远程桌面爆破
 2022-06-15（v0.0.7）
     [+]1.端口转发
     [+]2.内网TCP端口映射转发/内网穿透

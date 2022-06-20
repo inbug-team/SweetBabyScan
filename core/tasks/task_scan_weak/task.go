@@ -47,7 +47,7 @@ func taskScanWeak(req models.Params, item models.WaitScanWeak, key string) {
 	bar.Set("alive", fmt.Sprintf("%s:%s<%s>[+](0)", item.Ip, item.Port, item.Service))
 
 	var wg sync.WaitGroup
-	workerNumber := uint(config.WorkerMap[key])
+	workerNumber := uint(req.WorkerScanWeakMap[key])
 	if totalTask <= workerNumber {
 		workerNumber = totalTask
 	}
@@ -90,6 +90,8 @@ func taskScanWeak(req models.Params, item models.WaitScanWeak, key string) {
 							status = plugin_scan_weak.CheckElasticSearch(__item.Ip, __user, __pass, __port)
 						} else if _key == "smb" {
 							status = plugin_scan_weak.CheckSMB(__item.Ip, __user, __pass, __port)
+						} else if _key == "rdp" {
+							status = plugin_scan_weak.CheckRDP(__item.Ip, __user, __pass, __port)
 						} else if _key == "snmp" {
 							status = plugin_scan_weak.CheckSNMP(__item.Ip, __pass, __port)
 						}
