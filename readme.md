@@ -15,7 +15,10 @@
 - 网站爬虫截图，CMS识别
 - Nuclei & Xray POC
 - 网卡识别、域控识别、SMBGhost、MS17017
-- 弱口令爆破：FTP/SSH/SMB/SNMP/Redis/MongoDB/MySQL/SQLServer/PostGreSQL/ElasticSearch/Oracle/Memcached/RDP
+- 弱口令爆破： 
+    - 文件：FTP/SMB
+    - 远程：SSH/RDP/SNMP
+    - 数据库：Redis/MongoDB/MySQL/SQLServer/PgSQL/ES/Oracle/Memcached
 - TCP端口转发
 - 内网穿透
 - SOCK5穿透
