@@ -1,4 +1,4 @@
-package task_scan_port
+package task_scan_port_ip
 
 import (
 	"fmt"
@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-type taskScanPort struct {
+type taskScanPortIP struct {
 	scan   plugin_scan_port.ScanPort
 	config plugin_scan_port.Config
 	params models.Params
@@ -25,13 +25,13 @@ var vulData []models.WaitScanVul
 var weakData []models.WaitScanWeak
 var index = 2
 var savePorts = map[string]interface{}{}
-var savePortTxt = []string{"*****************<Port Info>*****************\r\n"}
+var savePortTxt = []string{"*****************<IP Port Info>*****************\r\n"}
 var aliveIps = map[string]string{}
 var ipRange = map[string]int{}
 var serviceConfig string
 
 // 1.迭代方法
-func (t *taskScanPort) doIter(wg *sync.WaitGroup, worker chan bool, result chan utils.CountResult, task utils.Task, data ...interface{}) {
+func (t *taskScanPortIP) doIter(wg *sync.WaitGroup, worker chan bool, result chan utils.CountResult, task utils.Task, data ...interface{}) {
 	_ips, _ports, _protocols := data[0], data[1], data[2]
 	for _, ip := range _ips.([]int) {
 		for _, port := range _ports.([]uint) {
@@ -45,12 +45,12 @@ func (t *taskScanPort) doIter(wg *sync.WaitGroup, worker chan bool, result chan 
 }
 
 // 2.任务方法
-func (t *taskScanPort) doTask(wg *sync.WaitGroup, worker chan bool, result chan utils.CountResult, data ...interface{}) {
+func (t *taskScanPortIP) doTask(wg *sync.WaitGroup, worker chan bool, result chan utils.CountResult, data ...interface{}) {
 	defer wg.Done()
 	ip, port, protocol := data[0], data[1], data[2]
 
 	target := plugin_scan_port.Target{
-		IP:       utils.IpIntToString(ip.(int)),
+		Host:     utils.IpIntToString(ip.(int)),
 		Port:     port.(uint),
 		Protocol: protocol.(string),
 	}
@@ -71,15 +71,15 @@ func (t *taskScanPort) doTask(wg *sync.WaitGroup, worker chan bool, result chan 
 }
 
 // 3.保存结果
-func (t *taskScanPort) doDone(item interface{}) error {
+func (t *taskScanPortIP) doDone(item interface{}) error {
 	result := item.(plugin_scan_port.Result)
 
 	service := "其他"
 
 	if strings.HasPrefix(result.Service.Banner, "HTTP") {
 		service = "HTTP"
-		urls = append(urls, fmt.Sprintf("http://%s:%d", result.IP, result.Port))
-		urls = append(urls, fmt.Sprintf("https://%s:%d", result.IP, result.Port))
+		urls = append(urls, fmt.Sprintf("http://%s:%d", result.Host, result.Port))
+		urls = append(urls, fmt.Sprintf("https://%s:%d", result.Host, result.Port))
 	} else if result.Service.Name == "redis" || result.ProbeName == "redis-server" {
 		service = "redis"
 	} else if result.Service.Name == "ssh" {
@@ -111,9 +111,9 @@ func (t *taskScanPort) doDone(item interface{}) error {
 	}
 
 	data := models.ScanPort{
-		Ip:              result.Target.IP,
-		IpNum:           utils.IpStringToInt(result.Target.IP),
-		IpRange:         strings.Join(strings.Split(result.Target.IP, ".")[0:3], ".") + ".1/24",
+		Ip:              result.Target.Host,
+		IpNum:           utils.IpStringToInt(result.Target.Host),
+		IpRange:         strings.Join(strings.Split(result.Target.Host, ".")[0:3], ".") + ".1/24",
 		Port:            fmt.Sprintf(`%d`, result.Target.Port),
 		Protocol:        result.Target.Protocol,
 		Service:         result.Service.Name,
@@ -126,9 +126,6 @@ func (t *taskScanPort) doDone(item interface{}) error {
 		Os:              result.Service.Extras.OperatingSystem,
 		Name:            result.Service.Extras.Hostname,
 		Other:           result.Service.Extras.Info,
-		StatusPo:        "失败",
-		User:            "",
-		Pwd:             "",
 		Probe:           result.ProbeName,
 	}
 
@@ -139,7 +136,7 @@ func (t *taskScanPort) doDone(item interface{}) error {
 
 	savePortTxt = append(savePortTxt, fmt.Sprintf(
 		`%s:%d [%s] [%s] [%s]`,
-		result.Target.IP,
+		result.Target.Host,
 		result.Target.Port,
 		result.Target.Protocol,
 		result.Service.Name,
@@ -159,7 +156,7 @@ func (t *taskScanPort) doDone(item interface{}) error {
 
 	if data.Port == "135" || data.Port == "139" || data.Port == "445" {
 		vulData = append(vulData, models.WaitScanVul{
-			IP:   data.Ip,
+			Host: data.Ip,
 			Port: result.Target.Port,
 			Item: data,
 		})
@@ -167,7 +164,7 @@ func (t *taskScanPort) doDone(item interface{}) error {
 
 	if utils.Contains(strings.Split(serviceConfig, ","), service) >= 0 {
 		weakData = append(weakData, models.WaitScanWeak{
-			Ip:       data.Ip,
+			Host:     data.Ip,
 			Port:     data.Port,
 			Service:  service,
 			Probe:    data.Probe,
@@ -177,8 +174,8 @@ func (t *taskScanPort) doDone(item interface{}) error {
 
 	if t.params.IsLog {
 		fmt.Println(fmt.Sprintf(
-			`[+]发现端口服务 %s:%d [%s] [%s] [%s]`,
-			result.Target.IP,
+			`[+]发现IP端口服务 %s:%d [%s] [%s] [%s]`,
+			result.Target.Host,
 			result.Target.Port,
 			result.Target.Protocol,
 			result.Service.Name,
@@ -190,19 +187,16 @@ func (t *taskScanPort) doDone(item interface{}) error {
 }
 
 // 4.记录数量
-func (t *taskScanPort) doAfter(data uint) {
+func (t *taskScanPortIP) doAfter(data uint) {
 
 }
 
 // 执行并发扫描
-func DoTaskScanPort(req models.Params) ([]string, []models.WaitScanVul, []models.WaitScanWeak) {
+func DoTaskScanPortIP(req models.Params) ([]string, []models.WaitScanVul, []models.WaitScanWeak, int) {
 	ips := req.IPs
 	ports := req.Ports
 	protocols := req.Protocols
 	totalTask := len(ips) * len(ports) * len(protocols)
-	if totalTask == 0 {
-		return []string{}, []models.WaitScanVul{}, []models.WaitScanWeak{}
-	}
 
 	serviceConfig = req.ServiceScanWeak
 	if serviceConfig == "" {
@@ -211,7 +205,7 @@ func DoTaskScanPort(req models.Params) ([]string, []models.WaitScanVul, []models
 	var s plugin_scan_port.ScanPort
 	s.InitContent(req.RuleProbe)
 
-	task := taskScanPort{
+	task := taskScanPortIP{
 		scan:   s,
 		params: req,
 		config: plugin_scan_port.Config{
@@ -236,7 +230,7 @@ func DoTaskScanPort(req models.Params) ([]string, []models.WaitScanVul, []models
 		task.doDone,
 		task.doAfter,
 		fmt.Sprintf(
-			"开始端口服务扫描\r\n\r\n> 扫描并发：%d\r\n> 连接超时：%d\r\n> 发包超时：%d\r\n> 读包超时：%d\r\n> 扫描端口：%s\r\n> 扫描协议：%s\n",
+			"开始IP端口服务扫描\r\n\r\n> 扫描并发：%d\r\n> 连接超时：%d\r\n> 发包超时：%d\r\n> 读包超时：%d\r\n> 扫描端口：%s\r\n> 扫描协议：%s\n",
 			req.WorkerScanPort,
 			req.TimeOutScanPortConnect,
 			req.TimeOutScanPortSend,
@@ -244,10 +238,10 @@ func DoTaskScanPort(req models.Params) ([]string, []models.WaitScanVul, []models
 			req.Port,
 			req.Protocol,
 		),
-		"完成端口服务扫描",
+		"完成IP端口服务扫描",
 		func() {
 			// 保存数据-端口信息
-			savePortTxt = append(savePortTxt, "*****************<Port Info>*****************\r\n\r\n")
+			savePortTxt = append(savePortTxt, "*****************<IP Port Info>*****************\r\n\r\n")
 			utils.SaveData(req.OutputExcel, "端口信息", savePorts)
 			utils.SaveText(req.OutputTxt, savePortTxt)
 
@@ -283,7 +277,7 @@ func DoTaskScanPort(req models.Params) ([]string, []models.WaitScanVul, []models
 					indexIps++
 				}
 				saveIpTxt = append(saveIpTxt, "*****************<IP>*****************\r\n\r\n")
-				utils.SaveData(req.OutputExcel, "存活IP", saveIps)
+				utils.SaveData(req.OutputExcel, "存活主机", saveIps)
 				utils.SaveText(req.OutputTxt, saveIpTxt)
 			}
 
@@ -292,6 +286,5 @@ func DoTaskScanPort(req models.Params) ([]string, []models.WaitScanVul, []models
 		ports,
 		protocols,
 	)
-
-	return urls, vulData, weakData
+	return urls, vulData, weakData, index
 }

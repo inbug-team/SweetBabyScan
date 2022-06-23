@@ -68,6 +68,16 @@ func Shuffle(slice []int) {
 	}
 }
 
+func ShuffleString(slice []string) {
+	r := rand.New(rand.NewSource(time.Now().Unix()))
+	for len(slice) > 0 {
+		n := len(slice)
+		randIndex := r.Intn(n)
+		slice[n-1], slice[randIndex] = slice[randIndex], slice[n-1]
+		slice = slice[:n-1]
+	}
+}
+
 // 包含
 func Contains(array interface{}, val interface{}) (index int) {
 	index = -1

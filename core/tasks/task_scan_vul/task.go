@@ -51,13 +51,13 @@ func (t *taskScanVul) doTask(wg *sync.WaitGroup, worker chan bool, result chan u
 		var res interface{}
 		// 获取网卡
 		if _item.Port == 135 {
-			data, _ := plugin_scan_net.ScanNet(_item.IP, uint(t.params.TimeOutScanPortConnect))
+			data, _ := plugin_scan_net.ScanNet(_item.Host, uint(t.params.TimeOutScanPortConnect))
 			if len(data) > 0 {
 				dataStr, _ := json.Marshal(data)
 				status = true
 				res = map[string]string{
 					"type":     "网卡",
-					"ip":       _item.IP,
+					"host":     _item.Host,
 					"port":     strconv.Itoa(int(_item.Port)),
 					"protocol": _item.Item.Protocol,
 					"content":  string(dataStr),
@@ -67,7 +67,7 @@ func (t *taskScanVul) doTask(wg *sync.WaitGroup, worker chan bool, result chan u
 
 		// 获取NetBIOS
 		if _item.Port == 139 {
-			data, err := plugin_scan_net_bios.ScanNetBIOS(_item.IP, _item.Port, uint(t.params.TimeOutScanPortConnect))
+			data, err := plugin_scan_net_bios.ScanNetBIOS(_item.Host, _item.Port, uint(t.params.TimeOutScanPortConnect))
 			if err == nil {
 				status = true
 				res = data
@@ -77,12 +77,12 @@ func (t *taskScanVul) doTask(wg *sync.WaitGroup, worker chan bool, result chan u
 		// 探测漏洞
 		if _item.Port == 445 {
 			groupRes := map[string]string{}
-			data1, _ := plugin_scan_ms17010.ScanMS17010(_item.IP, uint(t.params.TimeOutScanPortConnect))
+			data1, _ := plugin_scan_ms17010.ScanMS17010(_item.Host, uint(t.params.TimeOutScanPortConnect))
 			if len(data1) > 0 {
 				dataStr, _ := json.Marshal(data1)
 				_res := map[string]string{
 					"type":     "MS17-010",
-					"ip":       _item.IP,
+					"host":     _item.Host,
 					"port":     strconv.Itoa(int(_item.Port)),
 					"protocol": _item.Item.Protocol,
 					"vul_name": "MS17-010",
@@ -94,11 +94,11 @@ func (t *taskScanVul) doTask(wg *sync.WaitGroup, worker chan bool, result chan u
 				groupRes["MS17-010"] = ""
 			}
 
-			flag, _ := plugin_scan_smb_ghost.ScanSmbGhost(_item.IP, uint(t.params.TimeOutScanPortConnect))
+			flag, _ := plugin_scan_smb_ghost.ScanSmbGhost(_item.Host, uint(t.params.TimeOutScanPortConnect))
 			if flag {
 				_res := map[string]string{
 					"type":     "SMBGhost",
-					"ip":       _item.IP,
+					"host":     _item.Host,
 					"port":     strconv.Itoa(int(_item.Port)),
 					"protocol": _item.Item.Protocol,
 					"vul_name": "SMBGhost",
@@ -152,16 +152,16 @@ func (t *taskScanVul) doDone(item interface{}) (err error) {
 	if t.params.IsLog {
 		switch result["type"] {
 		case "group445":
-			var ip, port, vul string
+			var host, port, vul string
 			if result["MS17-010"] != "" {
 				var record map[string]string
 				err = json.Unmarshal([]byte(result["MS17-010"]), &record)
 				if err != nil {
 					return err
 				}
-				fmt.Println(fmt.Sprintf(`[+]发现MS17-010漏洞 %s:%s`, record["ip"], record["port"]))
+				fmt.Println(fmt.Sprintf(`[+]发现MS17-010漏洞 %s:%s`, record["host"], record["port"]))
 				vul = "MS17-010"
-				ip = record["ip"]
+				host = record["host"]
 				port = record["port"]
 			}
 
@@ -171,16 +171,16 @@ func (t *taskScanVul) doDone(item interface{}) (err error) {
 				if err != nil {
 					return err
 				}
-				fmt.Println(fmt.Sprintf(`[+]发现SMBGhost漏洞 %s:%s`, record["ip"], record["port"]))
+				fmt.Println(fmt.Sprintf(`[+]发现SMBGhost漏洞 %s:%s`, record["host"], record["port"]))
 				vul = "SMBGhost"
-				ip = record["ip"]
+				host = record["host"]
 				port = record["port"]
 			}
 
-			saveVul[fmt.Sprintf(`A%d`, indexVul)] = ip
+			saveVul[fmt.Sprintf(`A%d`, indexVul)] = host
 			saveVul[fmt.Sprintf(`B%d`, indexVul)], _ = strconv.Atoi(port)
 			saveVul[fmt.Sprintf(`C%d`, indexVul)] = vul
-			saveVulTxt = append(saveVulTxt, fmt.Sprintf("%s:%s <%s>", ip, port, vul)+"\r\n")
+			saveVulTxt = append(saveVulTxt, fmt.Sprintf("%s:%s <%s>", host, port, vul)+"\r\n")
 			indexVul++
 		case "网卡":
 			var nets []string
@@ -200,17 +200,17 @@ func (t *taskScanVul) doDone(item interface{}) (err error) {
 			fmt.Println(
 				fmt.Sprintf(
 					"[+]发现网卡 %s:%s\r\n%s",
-					result["ip"],
+					result["host"],
 					result["port"],
 					strings.Join(nets, ""),
 				),
 			)
-			saveNet[fmt.Sprintf(`A%d`, indexNet)] = result["ip"]
+			saveNet[fmt.Sprintf(`A%d`, indexNet)] = result["host"]
 			saveNet[fmt.Sprintf(`B%d`, indexNet)] = netInfo
 			saveNet[fmt.Sprintf(`C%d`, indexNet)] = hostName
 			saveNetTxt = append(saveNetTxt, fmt.Sprintf(
 				"%s:%s\r\n%s",
-				result["ip"],
+				result["host"],
 				result["port"],
 				strings.Join(nets, ""),
 			))
@@ -219,7 +219,7 @@ func (t *taskScanVul) doDone(item interface{}) (err error) {
 			fmt.Println(
 				fmt.Sprintf(
 					`[+]发现NetBIOS %s:%s <[Unique:%s] [Group:%s] [OSVersion:%s] [IsDC:%s]>`,
-					result["ip"],
+					result["host"],
 					result["port"],
 					result["unique"],
 					result["group"],
@@ -227,7 +227,7 @@ func (t *taskScanVul) doDone(item interface{}) (err error) {
 					result["is_dc"],
 				),
 			)
-			saveNetBios[fmt.Sprintf(`A%d`, indexNetBios)] = result["ip"]
+			saveNetBios[fmt.Sprintf(`A%d`, indexNetBios)] = result["host"]
 			saveNetBios[fmt.Sprintf(`B%d`, indexNetBios)], _ = strconv.Atoi(result["port"])
 			saveNetBios[fmt.Sprintf(`C%d`, indexNetBios)] = result["unique"]
 			saveNetBios[fmt.Sprintf(`D%d`, indexNetBios)] = result["group"]
@@ -235,7 +235,7 @@ func (t *taskScanVul) doDone(item interface{}) (err error) {
 			saveNetBios[fmt.Sprintf(`F%d`, indexNetBios)] = result["is_dc"]
 			saveNetBiosTxt = append(saveNetBiosTxt, fmt.Sprintf(
 				`%s:%s <[Unique:%s] [Group:%s] [OSVersion:%s] [IsDC:%s]>`,
-				result["ip"],
+				result["host"],
 				result["port"],
 				result["unique"],
 				result["group"],

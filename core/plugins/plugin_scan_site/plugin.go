@@ -121,7 +121,7 @@ func DoRequest(url string) (*http.Request, error) {
 	return request, nil
 }
 
-func DoScanSite(url string, timeOutScanSite, timeOutScreen int, isScreen bool) (site models.ScanSite) {
+func DoScanSite(url, fileDate string, timeOutScanSite, timeOutScreen int, isScreen bool) (site models.ScanSite) {
 
 	// 构造GET请求
 	request, err := DoRequest(url)
@@ -281,7 +281,7 @@ func DoScanSite(url string, timeOutScanSite, timeOutScreen int, isScreen bool) (
 
 	host, _ := netUrl.Parse(url)
 	site.Port = host.Port()
-	site.Ip = strings.Split(host.Host, ":")[0]
+	site.Host = strings.Split(host.Host, ":")[0]
 	site.StatusCode = strconv.Itoa(statusCode)
 	site.Link = url
 	site.LinkRedirect = LinkRedirect
@@ -296,9 +296,11 @@ func DoScanSite(url string, timeOutScanSite, timeOutScreen int, isScreen bool) (
 			urlScreen = site.LinkRedirect
 		}
 
-		status := DoFullScreenshot(urlScreen, fmt.Sprintf("./static/%s", siteImageName), time.Duration(timeOutScreen)*time.Second)
+		imgName := fmt.Sprintf("/static/%s/%s", fileDate, siteImageName)
+
+		status := DoFullScreenshot(urlScreen, "."+imgName, time.Duration(timeOutScreen)*time.Second)
 		if status {
-			site.Image = "/static/" + siteImageName
+			site.Image = imgName
 		}
 	}
 

@@ -89,17 +89,21 @@ type IpRangeStruct struct {
 
 // 命令行参数
 type Params struct {
+	FileDate               string                         // 文件日期
 	OutputExcel            string                         // 保存文件-excel
 	OutputTxt              string                         // 保存文件-txt
 	Host                   string                         // 检测网段
+	Domain                 string                         // 检测域名
+	Url                    string                         // 链接
 	Port                   string                         // 端口
 	Protocol               string                         // 协议
 	HostBlack              string                         // 排除网段
 	MethodScanHost         string                         // 验存方式：PING、ICMP
 	WorkerScanHost         int                            // 存活并发
-	WorkerScanPort         int                            // 存活并发
+	WorkerScanPort         int                            // 扫描并发
 	WorkerScanSite         int                            // 爬虫并发
 	IPs                    []int                          // IP集合
+	Domains                []string                       // 域名集合
 	Urls                   []string                       // URL链接
 	Ports                  []uint                         // 端口范围
 	Protocols              []string                       // 协议范围
@@ -174,6 +178,7 @@ type ScanPort struct {
 	Ip              string `json:"ip"`               // ip
 	IpNum           int    `json:"ip_num"`           // ip数值
 	IpRange         string `json:"ip_range"`         // ip网段
+	Domain          string `json:"domain"`           // 域名
 	Port            string `json:"port"`             // 端口
 	Protocol        string `json:"protocol"`         // 协议
 	Service         string `json:"service"`          // 服务
@@ -186,9 +191,6 @@ type ScanPort struct {
 	Os              string `json:"os"`               // 操作系统
 	Name            string `json:"name"`             // 主机名称
 	Other           string `json:"other"`            // 其他信息
-	StatusPo        string `json:"status_po"`        // 爆破结果：成功、失败
-	User            string `json:"user"`             // 账号
-	Pwd             string `json:"pwd"`              // 密码
 	Probe           string `json:"probe"`            // 探针
 }
 
@@ -198,7 +200,7 @@ type ScanSite struct {
 	Link         string `json:"link"`          // 网站链接
 	LinkRedirect string `json:"link_redirect"` // 网站跳转连接
 	StatusCode   string `json:"status_code"`   // 状态代码
-	Ip           string `json:"ip"`            // ip
+	Host         string `json:"host"`          // 主机
 	Port         string `json:"port"`          // 端口
 	Keywords     string `json:"keywords"`      // 关键字
 	Description  string `json:"description"`   // 网站描述
@@ -216,7 +218,7 @@ type ScanSite struct {
 // POC结构
 type ScanPoc struct {
 	Url         string `json:"url"`
-	Ip          string `json:"ip"`   // ip
+	Host        string `json:"host"` // 主机
 	Port        string `json:"port"` // 端口
 	Title       string `json:"title"`
 	Keywords    string `json:"keywords"`
@@ -235,7 +237,7 @@ type ScanPoc struct {
 
 // 爆破结构
 type ScanWeak struct {
-	Ip       string `json:"ip"`       // ip
+	Host     string `json:"host"`     // 主机
 	Port     string `json:"port"`     // 端口
 	Service  string `json:"service"`  // 服务
 	Probe    string `json:"probe"`    // 探针
@@ -246,14 +248,14 @@ type ScanWeak struct {
 
 // 等待扫描漏洞
 type WaitScanVul struct {
-	IP   string
+	Host string
 	Port uint
 	Item ScanPort
 }
 
 // 等待爆破服务
 type WaitScanWeak struct {
-	Ip       string `json:"ip"`       // ip
+	Host     string `json:"host"`     // 主机
 	Port     string `json:"port"`     // 端口
 	Service  string `json:"service"`  // 服务
 	Probe    string `json:"probe"`    // 探针

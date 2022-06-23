@@ -60,14 +60,14 @@ type Extras struct {
 
 // 7.待探测的目标端口
 type Target struct {
-	IP       string `json:"ip"`
+	Host     string `json:"host"`
 	Port     uint   `json:"port"`
 	Protocol string `json:"protocol"`
 }
 
 // 8.IP:端口封装
 func (t *Target) GetAddress() string {
-	return fmt.Sprintf(`%s:%d`, t.IP, t.Port)
+	return fmt.Sprintf(`%s:%d`, t.Host, t.Port)
 }
 
 // 9.探测时的参数配置

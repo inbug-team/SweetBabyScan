@@ -11,10 +11,12 @@ import (
 	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_poc_xray/load"
 	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_scan_weak"
 	"github.com/inbug-team/SweetBabyScan/core/plugins/plugin_sock5"
-	"github.com/inbug-team/SweetBabyScan/core/tasks/task_scan_host"
+	"github.com/inbug-team/SweetBabyScan/core/tasks/task_scan_host_domain"
+	"github.com/inbug-team/SweetBabyScan/core/tasks/task_scan_host_ip"
 	"github.com/inbug-team/SweetBabyScan/core/tasks/task_scan_poc_nuclei"
 	"github.com/inbug-team/SweetBabyScan/core/tasks/task_scan_poc_xray"
-	"github.com/inbug-team/SweetBabyScan/core/tasks/task_scan_port"
+	"github.com/inbug-team/SweetBabyScan/core/tasks/task_scan_port_domain"
+	"github.com/inbug-team/SweetBabyScan/core/tasks/task_scan_port_ip"
 	"github.com/inbug-team/SweetBabyScan/core/tasks/task_scan_site"
 	"github.com/inbug-team/SweetBabyScan/core/tasks/task_scan_vul"
 	"github.com/inbug-team/SweetBabyScan/core/tasks/task_scan_weak"
@@ -28,6 +30,7 @@ import (
 	"github.com/projectdiscovery/goflags"
 	"net"
 	"os"
+	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
@@ -109,6 +112,20 @@ func readFileStr(data string) (newData string, status bool) {
 	return
 }
 
+func pickIPAndDomain(host string) (ipStr, domainStr string) {
+	var ips, domains []string
+	for _, v := range strings.Split(host, ",") {
+		if status, _ := regexp.MatchString(`^([0-9a-zA-Z][0-9a-zA-Z\-]{0,62}\.)+([a-zA-Z]{0,62})$`, v); status {
+			domains = append(domains, v)
+		} else {
+			ips = append(ips, v)
+		}
+	}
+	ipStr = strings.Join(ips, ",")
+	domainStr = strings.Join(domains, ",")
+	return
+}
+
 func readFileArr(data string) (newData []string, status bool) {
 	if strings.HasSuffix(strings.ToLower(data), ".txt") {
 		dataList, err := utils.ReadLinesFormFile(data)
@@ -183,6 +200,9 @@ func doTask(p models.Params) {
 
 	// 定义保存文件
 	fileDate := now.Format("20060102150405")
+	p.FileDate = fileDate
+	os.MkdirAll(fmt.Sprintf("./static/%s", fileDate), 0777)
+
 	if p.OutputExcel == "" {
 		p.OutputExcel = fmt.Sprintf("./result-%s.xlsx", fileDate)
 	} else {
@@ -210,7 +230,16 @@ func doTask(p models.Params) {
 		p.HostBlack = tmpHostBlack
 	}
 
-	p.IPs = utils.GetIps(p.Host, p.HostBlack)
+	ipStr, domainStr := pickIPAndDomain(p.Host)
+	p.Host = ipStr
+	p.IPs = utils.GetIps(ipStr, p.HostBlack)
+
+	// 加载域名
+	if domainStr != "" {
+		p.Domain = domainStr
+		p.Domains = strings.Split(domainStr, ",")
+		utils.ShuffleString(p.Domains)
+	}
 
 	// 初始化excel
 	utils.InitExcel(p.OutputExcel, config.TmpExcel)
@@ -252,11 +281,18 @@ func doTask(p models.Params) {
 				p.MethodScanHost = "PING"
 			}
 		}
-		p.IPs = task_scan_host.DoTaskScanHost(p)
+		var index int
+		p.IPs, index = task_scan_host_ip.DoTaskScanHostIP(p)
+		p.Domains = task_scan_host_domain.DoTaskScanHostDomain(p, index)
 	}
 
 	// 2.端口服务扫描
-	p.Urls, p.WaitVul, p.WaitWeak = task_scan_port.DoTaskScanPort(p)
+	var index int
+	p.Urls, p.WaitVul, p.WaitWeak, index = task_scan_port_ip.DoTaskScanPortIP(p)
+	__urls, __waitVul, __waitWeak := task_scan_port_domain.DoTaskScanPortDomain(p, index)
+	p.Urls = append(p.Urls, __urls...)
+	p.WaitVul = append(p.WaitVul, __waitVul...)
+	p.WaitWeak = append(p.WaitWeak, __waitWeak...)
 
 	// 3.网站内容爬虫
 	p.Sites = task_scan_site.DoTaskScanSite(p)
@@ -364,6 +400,7 @@ func doTask(p models.Params) {
 
 	fmt.Println(fmt.Sprintf("Output Excel File：%s", p.OutputExcel))
 	fmt.Println(fmt.Sprintf("Output TXT File：%s", p.OutputTxt))
+	fmt.Println(fmt.Sprintf("Output Image Directory：./static/%s", p.FileDate))
 }
 
 func CheckICMP() bool {
@@ -402,13 +439,13 @@ func main() {
 	flagSet.IntVarP(&p.TimeOutScanHost, "timeOutScanHost", "tsh", 3, "存活超时")
 	flagSet.IntVarP(&p.Rarity, "rarity", "r", 10, "优先级")
 	flagSet.IntVarP(&p.WorkerScanPort, "workerScanPort", "wsp", 250, "扫描并发")
-	flagSet.IntVarP(&p.TimeOutScanPortConnect, "timeOutScanPortConnect", "tspc", 3, "端口扫描连接超时")
-	flagSet.IntVarP(&p.TimeOutScanPortSend, "timeOutScanPortSend", "tsps", 3, "端口扫描发包超时")
-	flagSet.IntVarP(&p.TimeOutScanPortRead, "timeOutScanPortRead", "tspr", 3, "端口扫描读取超时")
+	flagSet.IntVarP(&p.TimeOutScanPortConnect, "timeOutScanPortConnect", "tspc", 6, "端口扫描连接超时")
+	flagSet.IntVarP(&p.TimeOutScanPortSend, "timeOutScanPortSend", "tsps", 6, "端口扫描发包超时")
+	flagSet.IntVarP(&p.TimeOutScanPortRead, "timeOutScanPortRead", "tspr", 6, "端口扫描读取超时")
 	flagSet.BoolVarP(&p.IsNULLProbeOnly, "isNULLProbeOnly", "inpo", false, "使用空探针，默认使用自适应探针")
 	flagSet.BoolVarP(&p.IsUseAllProbes, "isUseAllProbes", "iuap", false, "使用全量探针，默认使用自适应探针")
 	flagSet.IntVarP(&p.WorkerScanSite, "workerScanSite", "wss", runtime.NumCPU()*2, "爬虫并发")
-	flagSet.IntVarP(&p.TimeOutScanSite, "timeOutScanSite", "tss", 3, "爬虫超时")
+	flagSet.IntVarP(&p.TimeOutScanSite, "timeOutScanSite", "tss", 6, "爬虫超时")
 	flagSet.IntVarP(&p.TimeOutScreen, "timeOutScreen", "ts", 60, "截图超时")
 	flagSet.BoolVarP(&p.ListPocNuclei, "listPocNuclei", "lpn", false, "列举Poc Nuclei")
 	flagSet.BoolVarP(&p.ListPocXray, "ListPocXray", "lpx", false, "列举Poc Xray")

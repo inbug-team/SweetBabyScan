@@ -51,7 +51,7 @@ func (t *taskScanPocXray) doTask(wg *sync.WaitGroup, worker chan bool, result ch
 				Count: 1,
 				Result: models.ScanPoc{
 					Url:         item.Link,
-					Ip:          item.Ip,
+					Host:        item.Host,
 					Port:        item.Port,
 					Title:       item.Title,
 					Keywords:    item.Keywords,
@@ -88,7 +88,7 @@ func (t *taskScanPocXray) doDone(item interface{}) error {
 	result := item.(models.ScanPoc)
 	pocData = append(pocData, result)
 
-	savePocs[fmt.Sprintf("A%d", index)] = result.Ip
+	savePocs[fmt.Sprintf("A%d", index)] = result.Host
 	savePocs[fmt.Sprintf("B%d", index)] = "xray"
 	savePocs[fmt.Sprintf("C%d", index)] = result.Url
 	savePocs[fmt.Sprintf("D%d", index)] = result.PocName

@@ -1,4 +1,4 @@
-package task_scan_host
+package task_scan_host_ip
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-type taskScanHost struct {
+type taskScanHostIP struct {
 	params models.Params
 }
 
@@ -23,8 +23,10 @@ var (
 	ipRange = map[string]int{}
 )
 
+var indexIps = 2
+
 // 1.迭代方法
-func (t *taskScanHost) doIter(wg *sync.WaitGroup, worker chan bool, result chan utils.CountResult, task utils.Task, data ...interface{}) {
+func (t *taskScanHostIP) doIter(wg *sync.WaitGroup, worker chan bool, result chan utils.CountResult, task utils.Task, data ...interface{}) {
 	items := data[0]
 	for _, item := range items.([]int) {
 		wg.Add(1)
@@ -34,7 +36,7 @@ func (t *taskScanHost) doIter(wg *sync.WaitGroup, worker chan bool, result chan 
 }
 
 // 2.任务方法
-func (t *taskScanHost) doTask(wg *sync.WaitGroup, worker chan bool, result chan utils.CountResult, data ...interface{}) {
+func (t *taskScanHostIP) doTask(wg *sync.WaitGroup, worker chan bool, result chan utils.CountResult, data ...interface{}) {
 	defer wg.Done()
 	item := data[0].(int)
 	status := false
@@ -66,7 +68,7 @@ func (t *taskScanHost) doTask(wg *sync.WaitGroup, worker chan bool, result chan 
 }
 
 // 3.保存结果
-func (t *taskScanHost) doDone(item interface{}) error {
+func (t *taskScanHostIP) doDone(item interface{}) error {
 	result := item.(models.ScanHost)
 	if _, ok := ipRange[result.IpRange]; ok {
 		ipRange[result.IpRange] += 1
@@ -83,13 +85,13 @@ func (t *taskScanHost) doDone(item interface{}) error {
 }
 
 // 4.记录数量
-func (t *taskScanHost) doAfter(data uint) {
+func (t *taskScanHostIP) doAfter(data uint) {
 
 }
 
 // 执行并发存活检测
-func DoTaskScanHost(req models.Params) []int {
-	task := taskScanHost{params: req}
+func DoTaskScanHostIP(req models.Params) ([]int, int) {
+	task := taskScanHostIP{params: req}
 
 	totalTask := uint(len(req.IPs))
 	totalTime := uint(math.Ceil(float64(totalTask)/float64(req.WorkerScanHost)) * float64(req.TimeOutScanHost))
@@ -103,14 +105,14 @@ func DoTaskScanHost(req models.Params) []int {
 		task.doDone,
 		task.doAfter,
 		fmt.Sprintf(
-			"开始主机存活检测\r\n\r\n> 存活并发：%d\r\n> 存活超时：%d\r\n> 检测方式：%s\r\n> 检测网段：%s\r\n> 排除网段：%s\r\n",
+			"开始IP主机存活检测\r\n\r\n> 存活并发：%d\r\n> 存活超时：%d\r\n> 检测方式：%s\r\n> 检测网段：%s\r\n> 排除网段：%s\r\n",
 			req.WorkerScanHost,
 			req.TimeOutScanHost,
 			req.MethodScanHost,
 			req.Host,
 			req.HostBlack,
 		),
-		"完成主机存活检测",
+		"完成IP主机存活检测",
 		func() {
 			var listIpRange []models.IpRangeStruct
 			total := 0
@@ -137,7 +139,6 @@ func DoTaskScanHost(req models.Params) []int {
 			// 保存数据-存活IP
 			saveIps := map[string]interface{}{}
 			saveIpTxt := []string{"*****************<IP>*****************\r\n"}
-			indexIps := 2
 			for _, v := range ip {
 				_v := utils.IpIntToString(v)
 				saveIps[fmt.Sprintf("A%d", indexIps)] = _v
@@ -146,7 +147,7 @@ func DoTaskScanHost(req models.Params) []int {
 			}
 			saveIpTxt = append(saveIpTxt, "*****************<IP>*****************\r\n\n")
 
-			utils.SaveData(req.OutputExcel, "存活IP", saveIps)
+			utils.SaveData(req.OutputExcel, "存活主机", saveIps)
 			utils.SaveText(req.OutputTxt, saveIpTxt)
 
 			// 保存数据-IP段
@@ -166,5 +167,5 @@ func DoTaskScanHost(req models.Params) []int {
 		},
 		req.IPs,
 	)
-	return ip
+	return ip, indexIps
 }

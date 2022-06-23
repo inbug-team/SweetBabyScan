@@ -49,7 +49,7 @@ func (t *taskScanPocNuclei) doTask(wg *sync.WaitGroup, worker chan bool, result 
 				Count: 1,
 				Result: models.ScanPoc{
 					Url:         _item.Link,
-					Ip:          _item.Ip,
+					Host:        _item.Host,
 					Port:        _item.Port,
 					Title:       _item.Title,
 					Keywords:    _item.Keywords,
@@ -91,7 +91,7 @@ func (t *taskScanPocNuclei) doDone(item interface{}) error {
 	result := item.(models.ScanPoc)
 	pocData = append(pocData, result)
 
-	savePocs[fmt.Sprintf("A%d", index)] = result.Ip
+	savePocs[fmt.Sprintf("A%d", index)] = result.Host
 	savePocs[fmt.Sprintf("B%d", index)] = "nuclei"
 	savePocs[fmt.Sprintf("C%d", index)] = result.Url
 	savePocs[fmt.Sprintf("D%d", index)] = result.VulName

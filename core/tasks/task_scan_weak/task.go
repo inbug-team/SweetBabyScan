@@ -44,7 +44,7 @@ func taskScanWeak(req models.Params, item models.WaitScanWeak, key string) {
 
 	tmpl := `{{string . "alive" | yellow}} {{counters . | red}} {{ bar . "[" "=" (cycle . "↖" "↗" "↘" "↙" ) "." "]"}} {{percent . | green}} {{speed . | blue}} {{string . "result" | magenta}}`
 	bar := pb.ProgressBarTemplate(tmpl).Start(int(totalTask))
-	bar.Set("alive", fmt.Sprintf("%s:%s<%s>[+](0)", item.Ip, item.Port, item.Service))
+	bar.Set("alive", fmt.Sprintf("%s:%s<%s>[+](0)", item.Host, item.Port, item.Service))
 
 	var wg sync.WaitGroup
 	workerNumber := uint(req.WorkerScanWeakMap[key])
@@ -69,38 +69,38 @@ func taskScanWeak(req models.Params, item models.WaitScanWeak, key string) {
 					go func(_key, __user, __pass string, __item models.WaitScanWeak, __port uint) {
 						status := false
 						if _key == "redis" {
-							status = plugin_scan_weak.CheckRedis(__item.Ip, __user, __pass, __port)
+							status = plugin_scan_weak.CheckRedis(__item.Host, __user, __pass, __port)
 						} else if _key == "ssh" {
-							status = plugin_scan_weak.CheckSSH(__item.Ip, __user, __pass, __port)
+							status = plugin_scan_weak.CheckSSH(__item.Host, __user, __pass, __port)
 						} else if _key == "mongodb" {
-							status = plugin_scan_weak.CheckMongoDB(__item.Ip, __user, __pass, __port)
+							status = plugin_scan_weak.CheckMongoDB(__item.Host, __user, __pass, __port)
 						} else if _key == "mysql" {
-							status = plugin_scan_weak.CheckRDB("mysql", __item.Ip, __user, __pass, __port)
+							status = plugin_scan_weak.CheckRDB("mysql", __item.Host, __user, __pass, __port)
 						} else if _key == "postgres" {
-							status = plugin_scan_weak.CheckRDB("postgres", __item.Ip, __user, __pass, __port)
+							status = plugin_scan_weak.CheckRDB("postgres", __item.Host, __user, __pass, __port)
 						} else if _key == "sqlserver" {
-							status = plugin_scan_weak.CheckRDB("mssql", __item.Ip, __user, __pass, __port)
+							status = plugin_scan_weak.CheckRDB("mssql", __item.Host, __user, __pass, __port)
 						} else if _key == "oracle" {
-							status = plugin_scan_weak.CheckRDB("oracle", __item.Ip, __user, __pass, __port)
+							status = plugin_scan_weak.CheckRDB("oracle", __item.Host, __user, __pass, __port)
 						} else if _key == "memcached" {
-							status = plugin_scan_weak.CheckRDB("memcached", __item.Ip, __user, __pass, __port)
+							status = plugin_scan_weak.CheckRDB("memcached", __item.Host, __user, __pass, __port)
 						} else if _key == "ftp" {
-							status = plugin_scan_weak.CheckFTP(__item.Ip, __user, __pass, __port)
+							status = plugin_scan_weak.CheckFTP(__item.Host, __user, __pass, __port)
 						} else if _key == "elasticsearch" {
-							status = plugin_scan_weak.CheckElasticSearch(__item.Ip, __user, __pass, __port)
+							status = plugin_scan_weak.CheckElasticSearch(__item.Host, __user, __pass, __port)
 						} else if _key == "smb" {
-							status = plugin_scan_weak.CheckSMB(__item.Ip, __user, __pass, __port)
+							status = plugin_scan_weak.CheckSMB(__item.Host, __user, __pass, __port)
 						} else if _key == "rdp" {
-							status = plugin_scan_weak.CheckRDP(__item.Ip, __user, __pass, __port)
+							status = plugin_scan_weak.CheckRDP(__item.Host, __user, __pass, __port)
 						} else if _key == "snmp" {
-							status = plugin_scan_weak.CheckSNMP(__item.Ip, __pass, __port)
+							status = plugin_scan_weak.CheckSNMP(__item.Host, __pass, __port)
 						}
 
 						if status {
 							tmpResult <- utils.CountResult{
 								Count: 1,
 								Result: models.ScanWeak{
-									Ip:       __item.Ip,
+									Host:     __item.Host,
 									Port:     __item.Port,
 									Service:  __item.Service,
 									Probe:    __item.Probe,
@@ -150,7 +150,7 @@ func taskScanWeak(req models.Params, item models.WaitScanWeak, key string) {
 
 				lock.Lock()
 
-				saveData[fmt.Sprintf(`A%d`, index)] = result.Ip
+				saveData[fmt.Sprintf(`A%d`, index)] = result.Host
 				saveData[fmt.Sprintf(`B%d`, index)], _ = strconv.Atoi(result.Port)
 				saveData[fmt.Sprintf(`C%d`, index)] = result.Service
 				saveData[fmt.Sprintf(`D%d`, index)] = result.User
@@ -160,7 +160,7 @@ func taskScanWeak(req models.Params, item models.WaitScanWeak, key string) {
 					saveTxt,
 					fmt.Sprintf(
 						"%s:%s [%s] <[user:%s] [pass:%s]>",
-						result.Ip,
+						result.Host,
 						result.Port,
 						result.Service,
 						result.User,
@@ -169,7 +169,7 @@ func taskScanWeak(req models.Params, item models.WaitScanWeak, key string) {
 				)
 				index++
 
-				bar.Set("alive", fmt.Sprintf("%s:%s<%s>[+](1)", item.Ip, item.Port, item.Service))
+				bar.Set("alive", fmt.Sprintf("%s:%s<%s>[+](1)", item.Host, item.Port, item.Service))
 				bar.Set("result", fmt.Sprintf("<[user:%s] [pass:%s]>", result.User, result.Pass))
 				bar.Add(int(totalTask - ingTask))
 				bar.Finish()

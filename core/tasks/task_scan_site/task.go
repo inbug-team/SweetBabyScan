@@ -37,7 +37,7 @@ func (t *taskScanSite) doTask(wg *sync.WaitGroup, worker chan bool, result chan 
 	item := data[0].(string)
 	status := false
 	var site models.ScanSite
-	site = plugin_scan_site.DoScanSite(item, t.params.TimeOutScanSite, t.params.TimeOutScreen, t.params.IsScreen)
+	site = plugin_scan_site.DoScanSite(item, t.params.FileDate, t.params.TimeOutScanSite, t.params.TimeOutScreen, t.params.IsScreen)
 	if site.StatusCode != "" {
 		status = true
 	}
@@ -62,7 +62,7 @@ func (t *taskScanSite) doDone(item interface{}) error {
 	result := item.(models.ScanSite)
 
 	sites = append(sites, result)
-	saveWeb[fmt.Sprintf("A%d", index)] = result.Ip
+	saveWeb[fmt.Sprintf("A%d", index)] = result.Host
 	saveWeb[fmt.Sprintf("B%d", index)], _ = strconv.Atoi(result.Port)
 	if strings.HasPrefix(result.Link, "https") {
 		saveWeb[fmt.Sprintf("C%d", index)] = "https"
