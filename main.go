@@ -420,7 +420,7 @@ func main() {
 	myFigure := figure.NewColorFigure("SBScan", "doom", "red", true)
 	myFigure.Print()
 	fmt.Println("全称：SweetBabyScan，甜心宝贝扫描器")
-	fmt.Println("Version <0.0.7> Made By InBug")
+	fmt.Println("Version <0.0.9> Made By InBug")
 
 	p := models.Params{}
 
@@ -430,7 +430,7 @@ func main() {
 	flagSet.BoolVarP(&p.IsScreen, "isScreen", "is", true, "启用截图")
 	flagSet.StringVarP(&p.OutputExcel, "outputExcel", "oe", "", "指定保存excel文件路径[以.xlsx结尾]")
 	flagSet.StringVarP(&p.OutputTxt, "outputTxt", "ot", "", "指定保存txt文件路径[以.txt结尾]")
-	flagSet.StringVarP(&p.Host, "host", "h", "192.168.0.0/16,172.16.0.0/12,10.0.0.0/8", "检测网段或者txt文件[以.txt结尾，一行一组回车换行]")
+	flagSet.StringVarP(&p.Host, "host", "h", "192.168.0.0/16,172.16.0.0/12,10.0.0.0/8", "检测网段/域名，或者txt文件[以.txt结尾，一行一组回车换行]")
 	flagSet.StringVarP(&p.Port, "port", "p", "web", "端口范围：tiny[精简]、web[WEB服务]、normal[常用]、database[数据库]、caffe[咖啡厅/酒店/机场]、iot[物联网]、all[全部]、自定义")
 	flagSet.StringVarP(&p.Protocol, "protocol", "pt", "tcp+udp", "端口范围：tcp、udp、tcp+udp")
 	flagSet.StringVarP(&p.HostBlack, "hostBlack", "hb", "", "排除网段")

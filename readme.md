@@ -196,7 +196,7 @@ Flags:
    -is, -isScreen                      启用截图 (default true)
    -oe, -outputExcel string            指定保存excel文件路径[以.xlsx结尾]
    -ot, -outputTxt string              指定保存txt文件路径[以.txt结尾]
-   -h, -host string                    检测网段或者txt文件[以.txt结尾，一行一组回车换行] (default "192.168.0.0/16,172.16.0.0/12,10.0.0.0/8")
+   -h, -host string                    检测网段/域名，或者txt文件[以.txt结尾，一行一组回车换行] (default "192.168.0.0/16,172.16.0.0/12,10.0.0.0/8")
    -p, -port string                    端口范围：tiny[精简]、web[WEB服务]、normal[常用]、database[数据库]、caffe[咖啡厅/酒店/机场]、iot[物联网]、all[全部]、自定义 (default "web")
    -pt, -protocol string               端口范围：tcp、udp、tcp+udp (default "tcp+udp")
    -hb, -hostBlack string              排除网段
@@ -205,13 +205,13 @@ Flags:
    -tsh, -timeOutScanHost int          存活超时 (default 3)
    -r, -rarity int                     优先级 (default 10)
    -wsp, -workerScanPort int           扫描并发 (default 250)
-   -tspc, -timeOutScanPortConnect int  端口扫描连接超时 (default 3)
-   -tsps, -timeOutScanPortSend int     端口扫描发包超时 (default 3)
-   -tspr, -timeOutScanPortRead int     端口扫描读取超时 (default 3)
+   -tspc, -timeOutScanPortConnect int  端口扫描连接超时 (default 6)
+   -tsps, -timeOutScanPortSend int     端口扫描发包超时 (default 6)
+   -tspr, -timeOutScanPortRead int     端口扫描读取超时 (default 6)
    -inpo, -isNULLProbeOnly             使用空探针，默认使用自适应探针
    -iuap, -isUseAllProbes              使用全量探针，默认使用自适应探针
    -wss, -workerScanSite int           爬虫并发 (default 16)
-   -tss, -timeOutScanSite int          爬虫超时 (default 3)
+   -tss, -timeOutScanSite int          爬虫超时 (default 6)
    -ts, -timeOutScreen int             截图超时 (default 60)
    -lpn, -listPocNuclei                列举Poc Nuclei
    -lpx, -ListPocXray                  列举Poc Xray
