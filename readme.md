@@ -10,12 +10,12 @@
 
 内网资产探测、通用漏洞扫描、弱口令爆破、端口转发、内网穿透、SOCK5
 
-- 主机存活检测，PING/ICMP
-- 端口服务扫描
+- 主机[IP&域名]存活检测，支持PING/ICMP模式
+- 端口[IP&域名]服务扫描
 - 网站爬虫截图，CMS识别
 - Nuclei & Xray POC
 - 网卡识别、域控识别、SMBGhost、MS17017
-- 弱口令爆破： 
+- 弱口令爆破：
     - 文件：FTP/SMB
     - 远程：SSH/RDP/SNMP
     - 数据库：Redis/MongoDB/MySQL/SQLServer/PgSQL/ES/Oracle/Memcached
@@ -36,7 +36,7 @@
 ![17](img/17.png)
 调高探测与扫描并发
 
-```
+```shell
 ./SbScan -h 192.168.0.0/16 -wsh 500 --wsp 500
 ```
 
@@ -46,7 +46,7 @@
 
 端口扫描可以写端口号、端口范围或者常用端口类型
 
-```
+```shell
 ./SbScan -h 192.168.188.0/24 -p 80,22,81-89
 ```
 
@@ -55,7 +55,7 @@
 
 列出weblogic漏洞对应的poc
 
-```
+```shell
 ./SbScan --lpn --fpn weblogic
 ```
 
@@ -104,45 +104,70 @@ GOOS=linux GOARCH=386 go build -ldflags="-s -w" -trimpath -o SbScan
 
 - 自动扫描
 
-> ./SbScan
+```shell
+./SbScan
+```
 
 - 根据指定IP段扫描
 
-> ./SbScan -h=192.168.188.1/24
+```shell
+./SbScan -h=192.168.188.1/24
+```
 
 - 根据指定IP+端口扫描
 
-> ./SbScan -h=192.168.188.1/24 -p=tiny
+```shell
+./SbScan -h=192.168.188.1/24 -p=tiny
+./SbScan -h=192.168.188.1/24,10.0.0.1/16 -p=22,80,443
+```
 
-> ./SbScan -h=192.168.188.1/24,10.0.0.1/16 -p=22,80,443
+- 根据指定IP段混合域名扫描
+
+```shell
+./SbScan -h=192.168.188.1/24,10.0.0.1/24,www.a.com,www.b.xyz,www.c.net
+```
 
 - 修改并发提高性能
 
-> ./SbScan -wsh=2048 -wsp=1024 -h=192.168.188.1/24,10.0.0.1/16 -p=22,80,443
+```shell
+./SbScan -wsh=2048 -wsp=1024 -h=192.168.188.1/24,10.0.0.1/16 -p=22,80,443
+```
 
 - 跳过主机存活检测（nsh）、POC漏洞探测（nsp）、弱口令爆破（nsw）、高危漏洞探测（nsv）
 
-> ./SbScan -h=192.168.188.1/24 -p=22,80 --nsh --nsp --nsw --nsv
+```shell
+./SbScan -h=192.168.188.1/24 -p=22,80 --nsh --nsp --nsw --nsv
+```
 
 - 指定IP文件、密码文件、账号文件、输出excel文件、指定爆破协议
 
-> ./SbScan -h=ip.txt -wp=pass.txt -wu=user.txt -oe=test.xlsx -ot=test.txt -ssw=redis,ssh,mysql
+```shell
+./SbScan -h=ip.txt -wp=pass.txt -wu=user.txt -oe=test.xlsx -ot=test.txt -ssw=redis,ssh,mysql
+```
 
 - 弱口令生成器（覆盖模式iwp、追加模式iap）
 
-> ./SbScan -h=192.168.188.1/24 -iwp -pp=test,Test -pc=@ -ps=123
+```shell
+./SbScan -h=192.168.188.1/24 -iwp -pp=test,Test -pc=@ -ps=123
+```
 
 - 端口转发
 
-> ./SbScan --pf -sh=192.168.188.1:8080 -lp=8080
+```shell
+./SbScan --pf -sh=192.168.188.1:8080 -lp=8080
+```
 
 - 内网穿透公网服务器端启动，启动端口默认9188可自定义
 
-> ./SbScan --pm --pms -secret=自定义密码
+```shell
+./SbScan --pm --pms -secret=自定义密码
+```
 
 - 内网客户端端口映射，TCP端口转发
 
-> ./SbScan --pm --pmc -secret=自定义密码 -su=公网IP:9188 -pcm=8081-127.0.0.1:8080,8082-127.0.0.1:8080,8088-192.168.166.55:80
+```shell
+./SbScan --pm --pmc -secret=自定义密码 -su=公网IP:9188 -pcm=8081-127.0.0.1:8080,8082-127.0.0.1:8080,8088-192.168.166.55:80
+```
 
 ```text
 127.0.0.1:8080 映射到 公网8081
@@ -152,7 +177,9 @@ GOOS=linux GOARCH=386 go build -ldflags="-s -w" -trimpath -o SbScan
 
 - 内网Sock5穿透
 
-> ./SbScan --pm --pmc --pmcs -secret=自定义密码 -su=公网IP:9188
+```shell
+./SbScan --pm --pmc --pmcs -secret=自定义密码 -su=公网IP:9188
+```
 
 ### 三、参数
 
@@ -231,6 +258,11 @@ Flags:
   <summary>更新日志👇🏻点击展开</summary>
 
 ```text
+2022-06-24（v0.0.9）
+    [+]1.域名存活检测
+    [+]2.域名端口服务扫描
+    [+]3.更新弱口令
+    [+]4.更新nuclei
 2022-06-20（v0.0.8）
     [+]1.Oracle爆破
     [+]2.Memcached爆破
