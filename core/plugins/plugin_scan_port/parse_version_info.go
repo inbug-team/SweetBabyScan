@@ -36,62 +36,86 @@ func (m *Match) ParseVersionInfo(response []byte) Extras {
 	if strings.Contains(v, " p/") {
 		regex := regexp.MustCompile(`p/([^/]*)/`)
 		vendorProductName := regex.FindStringSubmatch(v)
-		extras.VendorProduct = vendorProductName[1]
+		if len(vendorProductName) > 1 {
+			extras.VendorProduct = vendorProductName[1]
+		}
 	}
 	if strings.Contains(v, " p|") {
 		regex := regexp.MustCompile(`p|([^|]*)|`)
 		vendorProductName := regex.FindStringSubmatch(v)
-		extras.VendorProduct = vendorProductName[1]
+		if len(vendorProductName) > 1 {
+			extras.VendorProduct = vendorProductName[1]
+		}
 	}
 	if strings.Contains(v, " v/") {
 		regex := regexp.MustCompile(`v/([^/]*)/`)
 		version := regex.FindStringSubmatch(v)
-		extras.Version = version[1]
+		if len(version) > 1 {
+			extras.Version = version[1]
+		}
 	}
 	if strings.Contains(v, " v|") {
 		regex := regexp.MustCompile(`v|([^|]*)|`)
 		version := regex.FindStringSubmatch(v)
-		extras.Version = version[1]
+		if len(version) > 1 {
+			extras.Version = version[1]
+		}
 	}
 	if strings.Contains(v, " i/") {
 		regex := regexp.MustCompile(`i/([^/]*)/`)
 		info := regex.FindStringSubmatch(v)
-		extras.Info = info[1]
+		if len(info) > 1 {
+			extras.Info = info[1]
+		}
 	}
 	if strings.Contains(v, " i|") {
 		regex := regexp.MustCompile(`i|([^|]*)|`)
 		info := regex.FindStringSubmatch(v)
-		extras.Info = info[1]
+		if len(info) > 1 {
+			extras.Info = info[1]
+		}
 	}
 	if strings.Contains(v, " h/") {
 		regex := regexp.MustCompile(`h/([^/]*)/`)
 		hostname := regex.FindStringSubmatch(v)
-		extras.Hostname = hostname[1]
+		if len(hostname) > 1 {
+			extras.Hostname = hostname[1]
+		}
 	}
 	if strings.Contains(v, " h|") {
 		regex := regexp.MustCompile(`h|([^|]*)|`)
 		hostname := regex.FindStringSubmatch(v)
-		extras.Hostname = hostname[1]
+		if len(hostname) > 1 {
+			extras.Hostname = hostname[1]
+		}
 	}
 	if strings.Contains(v, " o/") {
 		regex := regexp.MustCompile(`o/([^/]*)/`)
 		operatingSystem := regex.FindStringSubmatch(v)
-		extras.OperatingSystem = operatingSystem[1]
+		if len(operatingSystem) > 1 {
+			extras.OperatingSystem = operatingSystem[1]
+		}
 	}
 	if strings.Contains(v, " o|") {
 		regex := regexp.MustCompile(`o|([^|]*)|`)
 		operatingSystem := regex.FindStringSubmatch(v)
-		extras.OperatingSystem = operatingSystem[1]
+		if len(operatingSystem) > 1 {
+			extras.OperatingSystem = operatingSystem[1]
+		}
 	}
 	if strings.Contains(v, " d/") {
 		regex := regexp.MustCompile(`d/([^/]*)/`)
 		deviceType := regex.FindStringSubmatch(v)
-		extras.DeviceType = deviceType[1]
+		if len(deviceType) > 1 {
+			extras.DeviceType = deviceType[1]
+		}
 	}
 	if strings.Contains(v, " d|") {
 		regex := regexp.MustCompile(`d|([^|]*)|`)
 		deviceType := regex.FindStringSubmatch(v)
-		extras.DeviceType = deviceType[1]
+		if len(deviceType) > 1 {
+			extras.DeviceType = deviceType[1]
+		}
 	}
 	if strings.Contains(v, " cpe:/") {
 		regex := regexp.MustCompile(`cpe:/([^/]*)/`)
