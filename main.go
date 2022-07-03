@@ -420,7 +420,7 @@ func main() {
 	myFigure := figure.NewColorFigure("SBScan", "doom", "red", true)
 	myFigure.Print()
 	fmt.Println("全称：SweetBabyScan，甜心宝贝扫描器")
-	fmt.Println("Version <0.0.9> Made By InBug")
+	fmt.Println("Version <0.1.0> Made By InBug")
 
 	p := models.Params{}
 
