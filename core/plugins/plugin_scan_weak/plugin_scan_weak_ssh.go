@@ -25,13 +25,10 @@ func CheckSSH(ip, user, pwd string, port uint) bool {
 		}()
 		session, err := client.NewSession()
 		if err == nil {
-			errEcho := session.Run("echo hello")
-			if errEcho == nil {
-				defer func() {
-					session.Close()
-				}()
-				result = true
-			}
+			defer func() {
+				session.Close()
+			}()
+			result = true
 		}
 
 	}

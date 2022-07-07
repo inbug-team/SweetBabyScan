@@ -7,7 +7,7 @@ import (
 )
 
 func CheckFTP(ip, user, pwd string, port uint) bool {
-	client, err := ftp.Dial(fmt.Sprintf(`%s:%d`, ip, port), ftp.DialWithTimeout(6*time.Second))
+	client, err := ftp.DialTimeout(fmt.Sprintf(`%s:%d`, ip, port), 6*time.Second)
 
 	if err != nil {
 		return false
@@ -18,7 +18,7 @@ func CheckFTP(ip, user, pwd string, port uint) bool {
 		return false
 	}
 
-	client.Quit()
+	//client.Quit()
 
 	return true
 }
